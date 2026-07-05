@@ -9,6 +9,7 @@ export type ExistingProduct = {
   price_per_kilo: number | null;
   unit_price: number | null;
   supplier_name: string | null;
+  category_name: string | null;
 };
 
 export type DiffItem = {
@@ -17,11 +18,17 @@ export type DiffItem = {
   brand: string | null;
   description: string;
   supplierName: string | null;
+  categoryName: string | null;
+  previousCategoryName: string | null;
   pricePerKilo: number | null;
   unitPrice: number | null;
   previousPricePerKilo: number | null;
   previousUnitPrice: number | null;
 };
+
+function normalizeForCompare(value: string | null): string {
+  return (value ?? "").trim().toLowerCase();
+}
 
 export type DiffSummary = { new: number; modified: number; removed: number; unchanged: number };
 
@@ -49,6 +56,8 @@ export function computeImportDiff(
         brand: row.brand,
         description: row.description,
         supplierName: row.supplierName,
+        categoryName: row.categoryName,
+        previousCategoryName: null,
         pricePerKilo: row.pricePerKilo,
         unitPrice: row.unitPrice,
         previousPricePerKilo: null,
@@ -60,8 +69,17 @@ export function computeImportDiff(
 
     matchedIds.add(existing.id);
 
+    // La categoria solo cuenta como "cambio" si el Excel realmente trajo una
+    // (fila vieja sin esa columna no debe marcar el producto como
+    // modificado solo porque la categoria actual no esta vacia).
+    const categoryChanged =
+      row.categoryName !== null &&
+      normalizeForCompare(row.categoryName) !== normalizeForCompare(existing.category_name);
+
     const changed =
-      existing.price_per_kilo !== row.pricePerKilo || existing.unit_price !== row.unitPrice;
+      existing.price_per_kilo !== row.pricePerKilo ||
+      existing.unit_price !== row.unitPrice ||
+      categoryChanged;
 
     if (changed) {
       items.push({
@@ -70,6 +88,8 @@ export function computeImportDiff(
         brand: row.brand,
         description: row.description,
         supplierName: row.supplierName,
+        categoryName: row.categoryName,
+        previousCategoryName: existing.category_name,
         pricePerKilo: row.pricePerKilo,
         unitPrice: row.unitPrice,
         previousPricePerKilo: existing.price_per_kilo,

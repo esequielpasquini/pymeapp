@@ -20,6 +20,40 @@ const actionBadge = {
   unchanged: { label: "Sin cambios", variant: "secondary" as const },
 };
 
+/**
+ * Muestra un precio (unitario o por kilo) del import: el valor propuesto, y
+ * si difiere del anterior, el valor anterior tachado abajo. Antes esta
+ * pantalla combinaba precio unitario y precio por kilo en una sola columna
+ * con "unit_price ?? price_per_kilo" -- si un producto tenia los dos, el
+ * precio por kilo quedaba oculto sin que se notara. Ahora cada uno tiene su
+ * propia columna y se muestra tal cual venga (o "—" si no aplica).
+ */
+function PriceCell({
+  previous,
+  proposed,
+  isRemoved,
+}: {
+  previous: number | null;
+  proposed: number | null;
+  isRemoved: boolean;
+}) {
+  if (isRemoved) {
+    return <span className="text-muted-foreground">{formatCurrency(previous)}</span>;
+  }
+  if (proposed === null) {
+    return <span className="text-muted-foreground">—</span>;
+  }
+  const changed = previous !== null && previous !== proposed;
+  return (
+    <div>
+      <p>{formatCurrency(proposed)}</p>
+      {changed && (
+        <p className="text-xs text-muted-foreground line-through">{formatCurrency(previous)}</p>
+      )}
+    </div>
+  );
+}
+
 export default async function ImportDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const importRow = await getImport(id);
@@ -66,14 +100,18 @@ export default async function ImportDetailPage({ params }: { params: Promise<{ i
             <TableHead>Cambio</TableHead>
             <TableHead>Descripción</TableHead>
             <TableHead>Proveedor</TableHead>
-            <TableHead className="text-right">Precio actual</TableHead>
-            <TableHead className="text-right">Precio propuesto</TableHead>
+            <TableHead>Categoria</TableHead>
+            <TableHead className="text-right">Precio unitario</TableHead>
+            <TableHead className="text-right">Precio x kilo</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {items.map((item) => {
-            const current = item.previous_unit_price ?? item.previous_price_per_kilo;
-            const proposed = item.unit_price ?? item.price_per_kilo;
+            const isRemoved = item.action === "remove";
+            const categoryChanged =
+              item.category_name !== null &&
+              item.category_name.trim().toLowerCase() !==
+                (item.previous_category_name ?? "").trim().toLowerCase();
             return (
               <TableRow key={item.id}>
                 <TableCell>
@@ -84,16 +122,38 @@ export default async function ImportDetailPage({ params }: { params: Promise<{ i
                   {item.description}
                 </TableCell>
                 <TableCell>{item.supplier_name ?? "—"}</TableCell>
-                <TableCell className="text-right">{formatCurrency(current)}</TableCell>
+                <TableCell>
+                  {isRemoved ? (
+                    "—"
+                  ) : item.category_name ? (
+                    <div>
+                      <p>{item.category_name}</p>
+                      {categoryChanged && item.previous_category_name && (
+                        <p className="text-xs text-muted-foreground line-through">
+                          {item.previous_category_name}
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Sin categoria (Excel no la trae)</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-right">
-                  {item.action === "remove" ? "—" : formatCurrency(proposed)}
+                  <PriceCell previous={item.previous_unit_price} proposed={item.unit_price} isRemoved={isRemoved} />
+                </TableCell>
+                <TableCell className="text-right">
+                  <PriceCell
+                    previous={item.previous_price_per_kilo}
+                    proposed={item.price_per_kilo}
+                    isRemoved={isRemoved}
+                  />
                 </TableCell>
               </TableRow>
             );
           })}
           {items.length === 0 && (
             <TableRow>
-              <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+              <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
                 No hay cambios detectados en este archivo.
               </TableCell>
             </TableRow>

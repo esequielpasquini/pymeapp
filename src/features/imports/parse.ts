@@ -5,6 +5,7 @@ export type ParsedRow = {
   brand: string | null;
   description: string;
   supplierName: string | null;
+  categoryName: string | null;
   pricePerKilo: number | null;
   unitPrice: number | null;
 };
@@ -16,6 +17,9 @@ const COLUMN_ALIASES: Record<string, keyof ParsedRow | "skip"> = {
   descripcion: "description",
   "descripción": "description",
   proveedor: "supplierName",
+  categoria: "categoryName",
+  "categoría": "categoryName",
+  rubro: "categoryName",
   "precio por kilo": "pricePerKilo",
   "precio x kilo": "pricePerKilo",
   "precio kilo": "pricePerKilo",
@@ -82,6 +86,7 @@ export function parseExcelBuffer(buffer: ArrayBuffer): ParsedRow[] {
       brand: null,
       description: "",
       supplierName: null,
+      categoryName: null,
       pricePerKilo: null,
       unitPrice: null,
     };
@@ -92,7 +97,7 @@ export function parseExcelBuffer(buffer: ArrayBuffer): ParsedRow[] {
         result[key] = toNumber(raw);
       } else if (key === "description") {
         result.description = raw ? String(raw).trim() : "";
-      } else if (key === "brand" || key === "supplierName") {
+      } else if (key === "brand" || key === "supplierName" || key === "categoryName") {
         result[key] = raw ? String(raw).trim() : null;
       }
     }

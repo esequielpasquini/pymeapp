@@ -43,7 +43,9 @@ export async function POST(request: Request) {
 
   const { data: existing, error: existingError } = await supabase
     .from("products")
-    .select("id, brand, description, price_per_kilo, unit_price, supplier:suppliers(name)")
+    .select(
+      "id, brand, description, price_per_kilo, unit_price, supplier:suppliers(name), category:categories(name)"
+    )
     .eq("organization_id", profile.organization_id)
     .eq("is_active", true);
 
@@ -54,6 +56,8 @@ export async function POST(request: Request) {
   const existingProducts: ExistingProduct[] = (existing ?? []).map((p) => {
     const supplier = p.supplier as unknown as { name: string } | { name: string }[] | null;
     const supplierName = Array.isArray(supplier) ? supplier[0]?.name ?? null : supplier?.name ?? null;
+    const category = p.category as unknown as { name: string } | { name: string }[] | null;
+    const categoryName = Array.isArray(category) ? category[0]?.name ?? null : category?.name ?? null;
     return {
       id: p.id,
       brand: p.brand,
@@ -61,6 +65,7 @@ export async function POST(request: Request) {
       price_per_kilo: p.price_per_kilo,
       unit_price: p.unit_price,
       supplier_name: supplierName,
+      category_name: categoryName,
     };
   });
 
@@ -92,6 +97,8 @@ export async function POST(request: Request) {
         brand: item.brand,
         description: item.description,
         supplier_name: item.supplierName,
+        category_name: item.categoryName,
+        previous_category_name: item.previousCategoryName,
         price_per_kilo: item.pricePerKilo,
         unit_price: item.unitPrice,
         previous_price_per_kilo: item.previousPricePerKilo,

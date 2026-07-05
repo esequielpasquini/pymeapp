@@ -75,6 +75,8 @@ export type ImportItem = {
   brand: string | null;
   description: string;
   supplier_name: string | null;
+  category_name: string | null;
+  previous_category_name: string | null;
   price_per_kilo: number | null;
   unit_price: number | null;
   previous_price_per_kilo: number | null;
