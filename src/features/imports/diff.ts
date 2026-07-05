@@ -81,7 +81,7 @@ export function computeImportDiff(
     }
   }
 
-  for (const p of existingProducts) {
+/*   for (const p of existingProducts) {
     if (!matchedIds.has(p.id)) {
       items.push({
         action: "remove",
@@ -96,7 +96,7 @@ export function computeImportDiff(
       });
       summary.removed += 1;
     }
-  }
+  } */
 
   return { items, summary };
 }
