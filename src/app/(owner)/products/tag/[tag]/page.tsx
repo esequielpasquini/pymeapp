@@ -10,5 +10,5 @@ export default async function ProductsByTagDetailPage({
   const { tag: encodedTag } = await params;
   const tag = decodeURIComponent(encodedTag);
   const { q, page } = await searchParams;
-  return <TagProductsView tag={tag} q={q} page={page} basePath="/products" canEdit />;
+  return <TagProductsView tag={tag} q={q} page={page} basePath="/products" isOwner />;
 }

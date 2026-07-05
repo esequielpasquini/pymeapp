@@ -10,5 +10,5 @@ export default async function ProductsByBrandDetailPage({
   const { brand: encodedBrand } = await params;
   const brand = decodeURIComponent(encodedBrand);
   const { q, page } = await searchParams;
-  return <BrandProductsView brand={brand} q={q} page={page} basePath="/products" canEdit />;
+  return <BrandProductsView brand={brand} q={q} page={page} basePath="/products" isOwner />;
 }

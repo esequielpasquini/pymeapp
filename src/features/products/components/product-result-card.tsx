@@ -26,16 +26,17 @@ function isStale(updatedAt: string): boolean {
 export function ProductResultCard({
   product,
   basePath = "/search",
-  canEdit = false,
+  isOwner = false,
 }: {
   product: Product;
   /** Raiz de rutas para "reportar sin stock" y para los tags clickeables --
    * este mismo componente se usa tanto en /search (empleado) como en
    * /products (dueño), cada uno con sus propias sub-rutas. */
   basePath?: string;
-  /** Muestra el link de edicion (lapiz) hacia la ficha del producto. Solo lo
-   * pasa en true /products -- el buscador del empleado nunca deja editar. */
-  canEdit?: boolean;
+  /** Solo /products lo pasa en true. Controla dos cosas que un empleado no
+   * deberia ver: el link de edicion (lapiz) hacia la ficha del producto, y
+   * el boton de compartir por WhatsApp. */
+  isOwner?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const stale = isStale(product.updated_at);
@@ -116,7 +117,7 @@ export function ProductResultCard({
 
   const actions = (
     <div className="mt-3 flex items-center gap-4 border-t border-border pt-3">
-      {canEdit && (
+      {isOwner && (
         <Link
           href={`/products/${product.id}`}
           className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground md:text-sm"
@@ -132,7 +133,7 @@ export function ProductResultCard({
         <AlertCircle className="h-3.5 w-3.5" />
         Reportar sin stock
       </Link>
-      <WhatsAppShareButton product={product} />
+      {isOwner && <WhatsAppShareButton product={product} />}
     </div>
   );
 

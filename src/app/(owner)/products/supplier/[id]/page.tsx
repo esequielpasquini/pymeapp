@@ -9,5 +9,5 @@ export default async function ProductsBySupplierDetailPage({
 }) {
   const { id } = await params;
   const { q, page } = await searchParams;
-  return <SupplierProductsView id={id} q={q} page={page} basePath="/products" canEdit />;
+  return <SupplierProductsView id={id} q={q} page={page} basePath="/products" isOwner />;
 }

@@ -12,18 +12,18 @@ import { Button } from "@/components/ui/button";
  * Pantalla principal de "buscar un producto y ver su precio", compartida
  * entre /search (empleado) y /products (dueño) -- son la misma experiencia,
  * solo cambia `basePath` para que los links internos (categorias, marca,
- * proveedor, reportar faltante) queden bajo la seccion correcta, y `canEdit`
- * para mostrar el link de edicion solo cuando el dueño la mira desde
- * /products.
+ * proveedor, reportar faltante) queden bajo la seccion correcta, y `isOwner`
+ * para mostrar el link de edicion y el boton de WhatsApp solo cuando el
+ * dueño la mira desde /products.
  */
 export async function SearchHomeView({
   q,
   basePath,
-  canEdit = false,
+  isOwner = false,
 }: {
   q?: string;
   basePath: string;
-  canEdit?: boolean;
+  isOwner?: boolean;
 }) {
   // Sin busqueda activa: en vez de listar todos los productos, se muestra
   // una grilla de categorias (iconos grandes) para navegar por rubro. El
@@ -69,7 +69,7 @@ export async function SearchHomeView({
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {products.map((product) => (
-          <ProductResultCard key={product.id} product={product} basePath={basePath} canEdit={canEdit} />
+          <ProductResultCard key={product.id} product={product} basePath={basePath} isOwner={isOwner} />
         ))}
       </div>
     </div>

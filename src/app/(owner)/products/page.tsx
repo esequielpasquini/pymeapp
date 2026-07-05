@@ -33,7 +33,7 @@ export default async function ProductsPage({
         </Button>
       </div>
 
-      <SearchHomeView q={q} basePath="/products" canEdit />
+      <SearchHomeView q={q} basePath="/products" isOwner />
     </div>
   );
 }
