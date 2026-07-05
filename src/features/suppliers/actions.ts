@@ -98,6 +98,5 @@ export async function deleteSupplier(supplierId: string): Promise<{ error: strin
   revalidatePath("/suppliers");
   revalidatePath("/products");
   revalidatePath("/search");
-  revalidatePath("/ventas");
   return { error: null };
 }

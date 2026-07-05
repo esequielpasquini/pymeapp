@@ -6,7 +6,6 @@ import { cn } from "@/lib/utils";
 import {
   LayoutDashboard,
   Package,
-  ShoppingCart,
   Tags,
   Truck,
   Upload,
@@ -17,7 +16,6 @@ import {
 
 export const OWNER_NAV_LINKS = [
   { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
-  { href: "/ventas", label: "Ventas", icon: ShoppingCart },
   { href: "/products", label: "Productos", icon: Package },
   { href: "/categories", label: "Categorias", icon: Tags },
   { href: "/suppliers", label: "Proveedores", icon: Truck },

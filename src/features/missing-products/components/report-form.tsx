@@ -42,7 +42,7 @@ export function ReportForm({
   defaultName?: string;
   defaultProduct?: { id: string; brand: string | null; description: string } | null;
   /** A donde vuelve el link de "Volver a la búsqueda" tras confirmar -- este
-   * formulario se usa tanto desde /search (empleado) como desde /ventas
+   * formulario se usa tanto desde /search (empleado) como desde /products
    * (dueño). */
   backHref?: string;
 }) {

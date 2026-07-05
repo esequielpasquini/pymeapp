@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ImageIcon, ChevronDown, AlertCircle } from "lucide-react";
+import { ImageIcon, ChevronDown, AlertCircle, Pencil } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppShareButton } from "@/features/products/components/whatsapp-share-button";
@@ -26,12 +26,16 @@ function isStale(updatedAt: string): boolean {
 export function ProductResultCard({
   product,
   basePath = "/search",
+  canEdit = false,
 }: {
   product: Product;
   /** Raiz de rutas para "reportar sin stock" y para los tags clickeables --
-   * este mismo componente se usa en /search (empleado) y en /ventas (dueño),
-   * cada uno con sus propias sub-rutas. */
+   * este mismo componente se usa tanto en /search (empleado) como en
+   * /products (dueño), cada uno con sus propias sub-rutas. */
   basePath?: string;
+  /** Muestra el link de edicion (lapiz) hacia la ficha del producto. Solo lo
+   * pasa en true /products -- el buscador del empleado nunca deja editar. */
+  canEdit?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const stale = isStale(product.updated_at);
@@ -112,6 +116,15 @@ export function ProductResultCard({
 
   const actions = (
     <div className="mt-3 flex items-center gap-4 border-t border-border pt-3">
+      {canEdit && (
+        <Link
+          href={`/products/${product.id}`}
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground md:text-sm"
+        >
+          <Pencil className="h-3.5 w-3.5" />
+          Editar
+        </Link>
+      )}
       <Link
         href={`${basePath}/report?productId=${product.id}`}
         className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground md:text-sm"

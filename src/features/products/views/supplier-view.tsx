@@ -12,11 +12,13 @@ export async function SupplierProductsView({
   q,
   page,
   basePath,
+  canEdit = false,
 }: {
   id: string;
   q?: string;
   page?: string;
   basePath: string;
+  canEdit?: boolean;
 }) {
   const supplier = await getSupplier(id);
   if (!supplier) notFound();
@@ -68,7 +70,7 @@ export async function SupplierProductsView({
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {products.map((product) => (
-          <ProductResultCard key={product.id} product={product} basePath={basePath} />
+          <ProductResultCard key={product.id} product={product} basePath={basePath} canEdit={canEdit} />
         ))}
         {!q && products.length === 0 && (
           <p className="py-8 text-center text-sm text-muted-foreground md:col-span-2">

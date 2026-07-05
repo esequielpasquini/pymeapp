@@ -10,11 +10,21 @@ import { Button } from "@/components/ui/button";
 
 /**
  * Pantalla principal de "buscar un producto y ver su precio", compartida
- * entre /search (empleado) y /ventas (dueño) -- son la misma experiencia,
+ * entre /search (empleado) y /products (dueño) -- son la misma experiencia,
  * solo cambia `basePath` para que los links internos (categorias, marca,
- * proveedor, reportar faltante) queden bajo la seccion correcta.
+ * proveedor, reportar faltante) queden bajo la seccion correcta, y `canEdit`
+ * para mostrar el link de edicion solo cuando el dueño la mira desde
+ * /products.
  */
-export async function SearchHomeView({ q, basePath }: { q?: string; basePath: string }) {
+export async function SearchHomeView({
+  q,
+  basePath,
+  canEdit = false,
+}: {
+  q?: string;
+  basePath: string;
+  canEdit?: boolean;
+}) {
   // Sin busqueda activa: en vez de listar todos los productos, se muestra
   // una grilla de categorias (iconos grandes) para navegar por rubro. El
   // buscador de arriba se mantiene igual en ambos casos.
@@ -59,7 +69,7 @@ export async function SearchHomeView({ q, basePath }: { q?: string; basePath: st
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {products.map((product) => (
-          <ProductResultCard key={product.id} product={product} basePath={basePath} />
+          <ProductResultCard key={product.id} product={product} basePath={basePath} canEdit={canEdit} />
         ))}
       </div>
     </div>

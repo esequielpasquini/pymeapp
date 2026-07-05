@@ -5,9 +5,9 @@ import { cn } from "@/lib/utils";
 /**
  * Tabs para elegir como navegar el catalogo sin escribir: por categoria,
  * marca, proveedor o tag. `basePath` permite reusar el mismo componente en
- * el buscador del empleado (/search), el de ventas del dueño (/ventas) y el
- * listado de productos del dueño (/products) -- cada uno arma sus propias
- * sub-rutas (`${basePath}/brands`, `${basePath}/tags`, etc) a partir de el.
+ * el buscador del empleado (/search) y en el listado de productos del dueño
+ * (/products) -- cada uno arma sus propias sub-rutas (`${basePath}/brands`,
+ * `${basePath}/tags`, etc) a partir de el.
  */
 export function BrowseTabs({
   active,
