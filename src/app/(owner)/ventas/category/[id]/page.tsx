@@ -1,6 +1,6 @@
 import { CategoryProductsView } from "@/features/products/views/category-view";
 
-export default async function CategoryProductsPage({
+export default async function VentasCategoryPage({
   params,
   searchParams,
 }: {
@@ -9,5 +9,5 @@ export default async function CategoryProductsPage({
 }) {
   const { id } = await params;
   const { q, page } = await searchParams;
-  return <CategoryProductsView id={id} q={q} page={page} basePath="/search" />;
+  return <CategoryProductsView id={id} q={q} page={page} basePath="/ventas" />;
 }

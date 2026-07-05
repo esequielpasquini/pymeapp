@@ -1,6 +1,6 @@
 import { BrandProductsView } from "@/features/products/views/brand-view";
 
-export default async function BrandProductsPage({
+export default async function VentasBrandPage({
   params,
   searchParams,
 }: {
@@ -10,5 +10,5 @@ export default async function BrandProductsPage({
   const { brand: encodedBrand } = await params;
   const brand = decodeURIComponent(encodedBrand);
   const { q, page } = await searchParams;
-  return <BrandProductsView brand={brand} q={q} page={page} basePath="/search" />;
+  return <BrandProductsView brand={brand} q={q} page={page} basePath="/ventas" />;
 }

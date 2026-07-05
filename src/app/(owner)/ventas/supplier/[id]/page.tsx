@@ -1,6 +1,6 @@
 import { SupplierProductsView } from "@/features/products/views/supplier-view";
 
-export default async function SupplierProductsPage({
+export default async function VentasSupplierPage({
   params,
   searchParams,
 }: {
@@ -9,5 +9,5 @@ export default async function SupplierProductsPage({
 }) {
   const { id } = await params;
   const { q, page } = await searchParams;
-  return <SupplierProductsView id={id} q={q} page={page} basePath="/search" />;
+  return <SupplierProductsView id={id} q={q} page={page} basePath="/ventas" />;
 }

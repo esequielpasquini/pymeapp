@@ -37,9 +37,14 @@ function SubmitButton() {
 export function ReportForm({
   defaultName,
   defaultProduct,
+  backHref = "/search",
 }: {
   defaultName?: string;
   defaultProduct?: { id: string; brand: string | null; description: string } | null;
+  /** A donde vuelve el link de "Volver a la búsqueda" tras confirmar -- este
+   * formulario se usa tanto desde /search (empleado) como desde /ventas
+   * (dueño). */
+  backHref?: string;
 }) {
   const [state, formAction] = useFormState(createReport, initialState);
   const [query, setQuery] = useState(
@@ -81,7 +86,7 @@ export function ReportForm({
       <div className="space-y-4 rounded-lg border border-border p-4 text-center md:p-6">
         <p className="text-sm md:text-base">¡Gracias! Le avisamos al dueño.</p>
         <Button asChild variant="outline" className="md:h-12 md:text-base">
-          <Link href="/search">
+          <Link href={backHref}>
             <ArrowLeft className="mr-2 h-4 w-4" />
             Volver a la búsqueda
           </Link>

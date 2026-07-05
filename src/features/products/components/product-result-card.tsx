@@ -23,7 +23,16 @@ function isStale(updatedAt: string): boolean {
  * que todas las tarjetas midan lo mismo sin importar el tamaño real de cada
  * foto.
  */
-export function ProductResultCard({ product }: { product: Product }) {
+export function ProductResultCard({
+  product,
+  reportBasePath = "/search",
+}: {
+  product: Product;
+  /** Raiz de rutas para "reportar sin stock" -- este mismo componente se usa
+   * en /search (empleado) y en /ventas (dueño), cada uno con su propia
+   * pantalla de reporte. */
+  reportBasePath?: string;
+}) {
   const [expanded, setExpanded] = useState(false);
   const stale = isStale(product.updated_at);
   const hasPrice = product.price_per_kilo !== null || product.unit_price !== null;
@@ -90,7 +99,7 @@ export function ProductResultCard({ product }: { product: Product }) {
   const actions = (
     <div className="mt-3 flex items-center gap-4 border-t border-border pt-3">
       <Link
-        href={`/search/report?productId=${product.id}`}
+        href={`${reportBasePath}/report?productId=${product.id}`}
         className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground md:text-sm"
       >
         <AlertCircle className="h-3.5 w-3.5" />
