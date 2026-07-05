@@ -1,7 +1,9 @@
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/queries";
+import { getMyOrganization } from "@/features/settings/queries";
 import { logout } from "@/features/auth/actions";
 import { NoOrganizationScreen } from "@/features/auth/components/no-organization-screen";
+import { OrgBrand } from "@/features/dashboard/components/org-brand";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
@@ -13,11 +15,13 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
   if (!user) redirect("/login");
   if (!profile) return <NoOrganizationScreen email={user.email} />;
 
+  const organization = await getMyOrganization();
+
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background p-4 md:px-6 md:py-5">
         <div>
-          <p className="text-sm font-semibold md:text-base">Asistente de Precios</p>
+          <OrgBrand logoUrl={organization?.logo_url ?? null} />
           <p className="text-xs text-muted-foreground md:text-sm">{profile.full_name}</p>
         </div>
         <form action={logout}>
