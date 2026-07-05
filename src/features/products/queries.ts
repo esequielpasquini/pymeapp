@@ -8,6 +8,7 @@ export type SearchProductsParams = {
   query?: string;
   supplierId?: string;
   categoryId?: string;
+  brand?: string;
   page?: number;
   includeInactive?: boolean;
 };
@@ -49,6 +50,13 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
 
   if (params.categoryId) {
     q = q.eq("category_id", params.categoryId);
+  }
+
+  if (params.brand) {
+    // ilike sin comodines se comporta como igualdad case-insensitive --
+    // suficiente para agrupar por marca sin depender de que el dueño haya
+    // tipeado siempre la misma capitalizacion.
+    q = q.ilike("brand", params.brand);
   }
 
   if (params.query && params.query.trim().length > 0) {
@@ -104,6 +112,40 @@ export async function getPriceHistory(productId: string): Promise<PriceChange[]>
 
   if (error) throw error;
   return (data ?? []) as PriceChange[];
+}
+
+export type BrandCount = { brand: string; count: number };
+
+/**
+ * Marcas distintas (case-insensitive) con su cantidad de productos activos,
+ * para la grilla de navegacion por marca del buscador del empleado. La
+ * marca es texto libre en products.brand (no hay tabla propia), asi que se
+ * agrupa en memoria en vez de con un GROUP BY en PostgREST.
+ */
+export async function listBrandsWithCounts(): Promise<BrandCount[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("brand")
+    .eq("is_active", true)
+    .not("brand", "is", null);
+
+  if (error) throw error;
+
+  const counts = new Map<string, BrandCount>();
+  for (const row of data ?? []) {
+    const brand = (row.brand as string | null)?.trim();
+    if (!brand) continue;
+    const key = brand.toLowerCase();
+    const existing = counts.get(key);
+    if (existing) {
+      existing.count += 1;
+    } else {
+      counts.set(key, { brand, count: 1 });
+    }
+  }
+
+  return Array.from(counts.values()).sort((a, b) => a.brand.localeCompare(b.brand));
 }
 
 export { listSuppliers } from "@/features/suppliers/queries";

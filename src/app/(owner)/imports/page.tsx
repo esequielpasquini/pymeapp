@@ -1,8 +1,10 @@
 import Link from "next/link";
+import { Download } from "lucide-react";
 import { listImports } from "@/features/imports/queries";
 import { UploadForm } from "@/features/imports/components/upload-form";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 
 const statusLabel = {
   pending_review: { label: "Pendiente de revisión", variant: "warning" as const },
@@ -24,6 +26,24 @@ export default async function ImportsPage() {
           una vista previa antes de aplicar cualquier cambio.
         </p>
       </div>
+
+      <Card>
+        <CardContent className="flex flex-col gap-4 pt-6 sm:flex-row sm:items-center sm:justify-between">
+          <div>
+            <p className="text-sm font-medium">¿Hiciste cambios manuales después de importar?</p>
+            <p className="text-xs text-muted-foreground">
+              Recreá el Excel con el catálogo actual (ya con esos cambios) para usarlo de base la
+              próxima vez, en vez de arriesgarte a pisarlos con un archivo viejo.
+            </p>
+          </div>
+          <Button asChild variant="outline" className="shrink-0">
+            <a href="/api/exports/products" download>
+              <Download className="mr-2 h-4 w-4" />
+              Recrear Excel
+            </a>
+          </Button>
+        </CardContent>
+      </Card>
 
       <Card>
         <CardContent className="pt-6">

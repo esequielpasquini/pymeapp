@@ -141,6 +141,24 @@ export function ProductForm({
         <Input id="notes" name="notes" defaultValue={product?.notes ?? ""} />
       </div>
 
+      <div className="space-y-2">
+        <Label htmlFor="image">Imagen (opcional)</Label>
+        {product?.image_url && (
+          <div className="flex items-center gap-3">
+            <div className="aspect-square h-20 w-20 overflow-hidden rounded-md border border-border bg-muted/30">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={product.image_url} alt="" className="h-full w-full object-cover" />
+            </div>
+            <label className="flex items-center gap-2 text-sm text-muted-foreground">
+              <input type="checkbox" name="removeImage" className="h-4 w-4" />
+              Quitar imagen actual
+            </label>
+          </div>
+        )}
+        <Input id="image" name="image" type="file" accept="image/png,image/jpeg,image/webp" />
+        <p className="text-xs text-muted-foreground">PNG, JPG o WEBP. Máximo 4MB.</p>
+      </div>
+
       {state.error && <p className="text-sm text-destructive">{state.error}</p>}
       <SubmitButton label={submitLabel} />
     </form>

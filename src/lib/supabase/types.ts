@@ -44,6 +44,7 @@ export type Product = {
   price_per_kilo: number | null;
   unit_price: number | null;
   notes: string | null;
+  image_url: string | null;
   is_active: boolean;
   created_at: string;
   updated_at: string;

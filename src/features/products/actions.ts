@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import { randomUUID } from "crypto";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,6 +24,52 @@ function toNumberOrNull(value: string | undefined): number | null {
 
 function toSupplierIdOrNull(value: string | undefined): string | null {
   return value && value.trim() !== "" ? value.trim() : null;
+}
+
+const IMAGE_MAX_SIZE = 4 * 1024 * 1024; // 4MB
+const ALLOWED_IMAGE_TYPES = ["image/png", "image/jpeg", "image/webp"];
+
+/**
+ * Resuelve que valor de image_url le corresponde a un producto tras el
+ * submit: si se adjunto un archivo nuevo lo sube al bucket "product-images"
+ * y devuelve la URL publica; si se tildo "quitar imagen" devuelve null; si
+ * no, deja la que ya tenia (currentImageUrl) sin tocar.
+ */
+async function resolveProductImage(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  organizationId: string,
+  formData: FormData,
+  currentImageUrl: string | null
+): Promise<{ imageUrl: string | null; error: string | null }> {
+  const image = formData.get("image");
+
+  if (image instanceof File && image.size > 0) {
+    if (image.size > IMAGE_MAX_SIZE) {
+      return { imageUrl: currentImageUrl, error: "La imagen no puede pesar más de 4MB." };
+    }
+    if (!ALLOWED_IMAGE_TYPES.includes(image.type)) {
+      return { imageUrl: currentImageUrl, error: "Formato no soportado. Usá PNG, JPG o WEBP." };
+    }
+
+    const ext = image.name.split(".").pop() || "jpg";
+    const path = `${organizationId}/${Date.now()}-${randomUUID()}.${ext}`;
+    const { error: uploadError } = await supabase.storage
+      .from("product-images")
+      .upload(path, image, { contentType: image.type });
+
+    if (uploadError) {
+      return { imageUrl: currentImageUrl, error: "No se pudo subir la imagen." };
+    }
+
+    const { data: publicUrl } = supabase.storage.from("product-images").getPublicUrl(path);
+    return { imageUrl: `${publicUrl.publicUrl}?v=${Date.now()}`, error: null };
+  }
+
+  if (formData.get("removeImage") === "on") {
+    return { imageUrl: null, error: null };
+  }
+
+  return { imageUrl: currentImageUrl, error: null };
 }
 
 export type ProductFormState = { error: string | null };
@@ -53,6 +100,14 @@ export async function createProduct(
   const pricePerKilo = toNumberOrNull(parsed.data.pricePerKilo);
   const unitPrice = toNumberOrNull(parsed.data.unitPrice);
 
+  const { imageUrl, error: imageError } = await resolveProductImage(
+    supabase,
+    profile.organization_id,
+    formData,
+    null
+  );
+  if (imageError) return { error: imageError };
+
   const { data: product, error } = await supabase
     .from("products")
     .insert({
@@ -64,6 +119,7 @@ export async function createProduct(
       price_per_kilo: pricePerKilo,
       unit_price: unitPrice,
       notes: parsed.data.notes || null,
+      image_url: imageUrl,
       updated_by: user.id,
     })
     .select("id")
@@ -114,13 +170,21 @@ export async function updateProduct(
 
   const { data: current } = await supabase
     .from("products")
-    .select("price_per_kilo, unit_price")
+    .select("price_per_kilo, unit_price, image_url")
     .eq("id", productId)
     .single();
 
   const supplierId = toSupplierIdOrNull(parsed.data.supplierId);
   const pricePerKilo = toNumberOrNull(parsed.data.pricePerKilo);
   const unitPrice = toNumberOrNull(parsed.data.unitPrice);
+
+  const { imageUrl, error: imageError } = await resolveProductImage(
+    supabase,
+    profile.organization_id,
+    formData,
+    current?.image_url ?? null
+  );
+  if (imageError) return { error: imageError };
 
   const { error } = await supabase
     .from("products")
@@ -132,6 +196,7 @@ export async function updateProduct(
       price_per_kilo: pricePerKilo,
       unit_price: unitPrice,
       notes: parsed.data.notes || null,
+      image_url: imageUrl,
       updated_by: user.id,
     })
     .eq("id", productId);
@@ -161,10 +226,24 @@ export async function updateProduct(
   return { error: null };
 }
 
-export async function deactivateProduct(productId: string) {
+/**
+ * "Eliminar" un producto: en realidad es un soft-delete (is_active = false),
+ * no un DELETE de la fila. Se eligio asi para no perder el historial de
+ * precios (price_changes referencia product_id) ni romper import_items de
+ * importaciones ya aplicadas -- el producto desaparece de los listados
+ * (dueño y buscador del empleado) pero los datos quedan preservados.
+ */
+export async function deleteProduct(productId: string) {
   const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) redirect("/login");
+
   const { error } = await supabase.from("products").update({ is_active: false }).eq("id", productId);
-  if (error) throw error;
+  if (error) throw new Error("No se pudo eliminar el producto.");
+
   revalidatePath("/products");
   revalidatePath("/search");
+  redirect("/products");
 }

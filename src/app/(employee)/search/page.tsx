@@ -4,6 +4,7 @@ import { listCategoriesWithCounts } from "@/features/categories/queries";
 import { SearchBox } from "@/features/products/components/search-box";
 import { ProductResultCard } from "@/features/products/components/product-result-card";
 import { CategoryGrid } from "@/features/products/components/category-grid";
+import { BrowseTabs } from "@/features/products/components/browse-tabs";
 import { Button } from "@/components/ui/button";
 import { AlertCircle } from "lucide-react";
 
@@ -22,6 +23,7 @@ export default async function EmployeeSearchPage({
     return (
       <div className="mx-auto max-w-2xl space-y-6 md:max-w-4xl lg:max-w-5xl">
         <SearchBox placeholder="Que estas buscando?" />
+        <BrowseTabs active="category" />
         <CategoryGrid categories={categories} basePath="/search/category" />
         <div className="pt-2 text-center">
           <Button asChild variant="outline" size="lg" className="md:h-12 md:px-6 md:text-base">
