@@ -3,17 +3,8 @@ import { searchProducts } from "@/features/products/queries";
 import { listCategoriesWithCounts } from "@/features/categories/queries";
 import { SearchBox } from "@/features/products/components/search-box";
 import { CategoryGrid } from "@/features/products/components/category-grid";
-import { CategoryIcon } from "@/features/categories/components/category-icon";
 import { Button } from "@/components/ui/button";
-import {
-  Table,
-  TableHeader,
-  TableRow,
-  TableHead,
-  TableBody,
-  TableCell,
-} from "@/components/ui/table";
-import { formatCurrency } from "@/lib/utils";
+import { ProductTable } from "@/features/products/components/product-table";
 import { Plus } from "lucide-react";
 
 export default async function ProductsPage({
@@ -70,54 +61,7 @@ export default async function ProductsPage({
 
       <SearchBox />
 
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>Descripcion</TableHead>
-            <TableHead>Marca</TableHead>
-            <TableHead>Categoria</TableHead>
-            <TableHead>Proveedor</TableHead>
-            <TableHead className="text-right">Precio unitario</TableHead>
-            <TableHead className="text-right">Precio kg/m/L</TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {products.map((product) => (
-            <TableRow key={product.id} className="cursor-pointer">
-              <TableCell>
-                <Link href={`/products/${product.id}`} className="hover:underline">
-                  {product.description}
-                </Link>
-              </TableCell>
-              <TableCell>{product.brand ?? "—"}</TableCell>
-              <TableCell>
-                {product.category ? (
-                  <span className="flex items-center gap-1.5 text-sm">
-                    <CategoryIcon icon={product.category.icon} className="h-4 w-4" />
-                    {product.category.name}
-                  </span>
-                ) : (
-                  "—"
-                )}
-              </TableCell>
-              <TableCell>{product.supplier?.name ?? "—"}</TableCell>
-              <TableCell className="text-right">
-                {product.unit_price !== null ? formatCurrency(product.unit_price) : "—"}
-              </TableCell>
-              <TableCell className="text-right">
-                {product.price_per_kilo !== null ? formatCurrency(product.price_per_kilo) : "—"}
-              </TableCell>
-            </TableRow>
-          ))}
-          {products.length === 0 && (
-            <TableRow>
-              <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                No se encontraron productos.
-              </TableCell>
-            </TableRow>
-          )}
-        </TableBody>
-      </Table>
+      <ProductTable products={products} showCategory />
 
       {totalPages > 1 && (
         <div className="flex items-center justify-center gap-2">
