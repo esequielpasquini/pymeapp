@@ -1,12 +1,13 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import Link from "next/link";
 import { useFormState, useFormStatus } from "react-dom";
 import { createReport, type ReportFormState } from "@/features/missing-products/actions";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { X } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
 
 const initialState: ReportFormState = { error: null };
 
@@ -77,8 +78,14 @@ export function ReportForm({
 
   if (state.success) {
     return (
-      <div className="rounded-lg border border-border p-4 text-center md:p-6">
+      <div className="space-y-4 rounded-lg border border-border p-4 text-center md:p-6">
         <p className="text-sm md:text-base">¡Gracias! Le avisamos al dueño.</p>
+        <Button asChild variant="outline" className="md:h-12 md:text-base">
+          <Link href="/search">
+            <ArrowLeft className="mr-2 h-4 w-4" />
+            Volver a la búsqueda
+          </Link>
+        </Button>
       </div>
     );
   }

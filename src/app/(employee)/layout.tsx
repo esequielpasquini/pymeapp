@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/queries";
 import { getMyOrganization } from "@/features/settings/queries";
@@ -20,10 +21,10 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background p-4 md:px-6 md:py-5">
-        <div>
+        <Link href="/search">
           <OrgBrand logoUrl={organization?.logo_url ?? null} />
           <p className="text-xs text-muted-foreground md:text-sm">{profile.full_name}</p>
-        </div>
+        </Link>
         <form action={logout}>
           <Button variant="ghost" size="icon" className="h-11 w-11 md:h-12 md:w-12" aria-label="Cerrar sesión">
             <LogOut className="h-5 w-5" />
