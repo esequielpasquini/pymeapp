@@ -5,13 +5,14 @@
 -- faltantes.
 --
 -- Contrasena de todos los usuarios de prueba: "password123"
-
+create extension if not exists pgcrypto;
 do $$
 declare
   v_org_id uuid := '11111111-1111-1111-1111-111111111111';
   v_owner_id uuid := '22222222-2222-2222-2222-222222222222';
   v_emp1_id uuid := '22222222-2222-2222-2222-222222222223';
   v_emp2_id uuid := '22222222-2222-2222-2222-222222222224';
+  
 
   v_sup_acme uuid := '33333333-3333-3333-3333-333333333331';
   v_sup_pinturas uuid := '33333333-3333-3333-3333-333333333332';
@@ -27,27 +28,28 @@ begin
 
   insert into organizations (id, name, slug) values
     (v_org_id, 'Ferreteria El Tornillo Feliz', 'el-tornillo-feliz');
+    
 
   -- Usuarios de auth (patron estandar para seeds locales de Supabase).
-  insert into auth.users (
-    id, instance_id, aud, role, email, encrypted_password,
-    email_confirmed_at, created_at, updated_at,
-    raw_app_meta_data, raw_user_meta_data, is_sso_user
-  ) values
-    (v_owner_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-     'dueno@eltornillofeliz.test', crypt('password123', gen_salt('bf')),
-     now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false),
-    (v_emp1_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-     'empleado1@eltornillofeliz.test', crypt('password123', gen_salt('bf')),
-     now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false),
-    (v_emp2_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
-     'empleado2@eltornillofeliz.test', crypt('password123', gen_salt('bf')),
-     now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false);
+ -- insert into auth.users (
+  --  id, instance_id, aud, role, email, encrypted_password,
+  --  email_confirmed_at, created_at, updated_at,
+  --  raw_app_meta_data, raw_user_meta_data, is_sso_user
+--  ) values
+ --   (v_owner_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+ --    'dueno@eltornillofeliz.test', crypt('password123', gen_salt('bf')),
+ --    now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false),
+ --   (v_emp1_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+ --    'empleado1@eltornillofeliz.test', crypt('password123', gen_salt('bf')),
+ --    now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false),
+ --   (v_emp2_id, '00000000-0000-0000-0000-000000000000', 'authenticated', 'authenticated',
+ --    'empleado2@eltornillofeliz.test', crypt('password123', gen_salt('bf')),
+  --   now(), now(), now(), '{"provider":"email","providers":["email"]}', '{}', false);
 
   insert into profiles (id, organization_id, full_name, role) values
     (v_owner_id, v_org_id, 'Marcela (Duena)', 'owner'),
-    (v_emp1_id, v_org_id, 'Juan (Empleado)', 'employee'),
-    (v_emp2_id, v_org_id, 'Sofia (Empleada)', 'employee');
+   (v_emp1_id, v_org_id, 'Juan (Empleado)', 'employee'),
+   (v_emp2_id, v_org_id, 'Sofia (Empleada)', 'employee');
 
   insert into suppliers (id, organization_id, name) values
     (v_sup_acme, v_org_id, 'Acme Ferretera SA'),
