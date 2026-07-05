@@ -25,9 +25,12 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
           oculto en ese rango, asi que sin esto el dueño no tiene forma de
           navegar entre pantallas desde el celular. */}
       <header className="flex items-center justify-between border-b border-border p-4 md:hidden">
-        <Link href="/dashboard">
-          <OrgBrand logoUrl={organization?.logo_url ?? null} />
-          <p className="text-xs text-muted-foreground">{profile.full_name}</p>
+        <Link href="/dashboard" className="min-w-0">
+          <OrgBrand
+            logoUrl={organization?.logo_url ?? null}
+            name={organization?.name ?? "Asistente de Precios"}
+            subtitle={profile.full_name}
+          />
         </Link>
         <MobileOwnerNav onLogout={logout} />
       </header>
@@ -35,8 +38,11 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
       <aside className="hidden w-60 shrink-0 border-r border-border bg-muted/20 p-4 md:flex md:flex-col md:justify-between">
         <div>
           <Link href="/dashboard" className="mb-6 block px-2">
-            <OrgBrand logoUrl={organization?.logo_url ?? null} />
-            <p className="text-xs text-muted-foreground">{profile.full_name}</p>
+            <OrgBrand
+              logoUrl={organization?.logo_url ?? null}
+              name={organization?.name ?? "Asistente de Precios"}
+              subtitle={profile.full_name}
+            />
           </Link>
           <OwnerNav />
         </div>

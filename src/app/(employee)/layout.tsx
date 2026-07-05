@@ -21,9 +21,12 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
   return (
     <div className="min-h-screen">
       <header className="sticky top-0 z-10 flex items-center justify-between border-b border-border bg-background p-4 md:px-6 md:py-5">
-        <Link href="/search">
-          <OrgBrand logoUrl={organization?.logo_url ?? null} />
-          <p className="text-xs text-muted-foreground md:text-sm">{profile.full_name}</p>
+        <Link href="/search" className="min-w-0">
+          <OrgBrand
+            logoUrl={organization?.logo_url ?? null}
+            name={organization?.name ?? "Asistente de Precios"}
+            subtitle={profile.full_name}
+          />
         </Link>
         <form action={logout}>
           <Button variant="ghost" size="icon" className="h-11 w-11 md:h-12 md:w-12" aria-label="Cerrar sesión">

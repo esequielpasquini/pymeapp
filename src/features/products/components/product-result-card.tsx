@@ -36,7 +36,7 @@ export function ProductResultCard({ product }: { product: Product }) {
       )}
       {product.price_per_kilo !== null && (
         <p className="text-sm font-medium text-primary/80 md:text-base">
-          {formatCurrency(product.price_per_kilo)} / kg-m-L
+          {formatCurrency(product.price_per_kilo)} / kg
         </p>
       )}
       {!hasPrice && (

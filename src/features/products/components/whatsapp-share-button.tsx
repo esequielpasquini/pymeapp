@@ -12,21 +12,27 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
-/** Marca + descripcion + precio unitario, tal como lo pidio el dueño: el
- * mensaje que arma este boton es literalmente lo que un empleado le
- * contesta a un cliente que pregunta un precio por WhatsApp. Si el
- * producto no tiene precio unitario cargado, cae a precio por kilo/m/L y,
- * si tampoco tiene eso, avisa que hay que consultarlo. */
+/** Marca + descripcion + precio(s), tal como lo pidio el dueño: el mensaje
+ * que arma este boton es literalmente lo que un empleado le contesta a un
+ * cliente que pregunta un precio por WhatsApp. Si el producto tiene los
+ * dos precios cargados (unitario y por kilo) se incluyen ambos -- no son
+ * excluyentes, un producto puede venderse por unidad y por kilo a la vez.
+ * Si no tiene ninguno, avisa que hay que consultarlo. */
 function buildShareMessage(product: Product): string {
   const title = product.brand ? `${product.brand} - ${product.description}` : product.description;
 
+  const priceLines: string[] = [];
   if (product.unit_price !== null) {
-    return `${title}\nPrecio: ${formatCurrency(product.unit_price)}`;
+    priceLines.push(`Precio unitario: ${formatCurrency(product.unit_price)}`);
   }
   if (product.price_per_kilo !== null) {
-    return `${title}\nPrecio: ${formatCurrency(product.price_per_kilo)} / kg-m-L`;
+    priceLines.push(`Precio por kg: ${formatCurrency(product.price_per_kilo)}`);
   }
-  return `${title}\nPrecio: a confirmar`;
+  if (priceLines.length === 0) {
+    priceLines.push("Precio: a confirmar");
+  }
+
+  return `${title}\n${priceLines.join("\n")}`;
 }
 
 export function WhatsAppShareButton({ product }: { product: Product }) {

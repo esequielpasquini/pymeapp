@@ -69,7 +69,7 @@ export function ProductTable({
                   )}
                   {product.price_per_kilo !== null && (
                     <p className="text-xs text-muted-foreground">
-                      {formatCurrency(product.price_per_kilo)}/kg-m-L
+                      {formatCurrency(product.price_per_kilo)}/kg
                     </p>
                   )}
                   {!hasPrice && <p className="text-xs text-muted-foreground">Sin precio</p>}
