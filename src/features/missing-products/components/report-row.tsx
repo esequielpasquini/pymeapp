@@ -1,6 +1,7 @@
 "use client";
 
 import { useTransition } from "react";
+import Link from "next/link";
 import { resolveReport } from "@/features/missing-products/actions";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -13,6 +14,16 @@ export function ReportRow({ report }: { report: MissingReport }) {
     <div className="flex items-start justify-between gap-4 rounded-lg border border-border p-4">
       <div>
         <p className="font-medium">{report.product_name}</p>
+        {report.product_id ? (
+          <Link
+            href={`/products/${report.product_id}`}
+            className="text-xs text-primary hover:underline"
+          >
+            Ver producto en el catálogo
+          </Link>
+        ) : (
+          <p className="text-xs text-muted-foreground">No está en el catálogo todavía</p>
+        )}
         {report.comment && <p className="text-sm text-muted-foreground">{report.comment}</p>}
         {report.photo_url && (
           // eslint-disable-next-line @next/next/no-img-element

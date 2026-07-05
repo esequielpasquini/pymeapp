@@ -2,21 +2,29 @@ import Link from "next/link";
 import { LayoutGrid, Tag, Truck } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-const TABS = [
-  { key: "category", label: "Categoria", href: "/search", icon: LayoutGrid },
-  { key: "brand", label: "Marca", href: "/search/brands", icon: Tag },
-  { key: "supplier", label: "Proveedor", href: "/search/suppliers", icon: Truck },
-] as const;
-
 /**
  * Tabs para elegir como navegar el catalogo sin escribir: por categoria (ya
- * existia), por marca o por proveedor. Viven arriba del buscador en las 3
- * pantallas de "sin busqueda activa" del empleado.
+ * existia), por marca o por proveedor. `basePath` permite reusar el mismo
+ * componente en el buscador del empleado (/search) y en el listado de
+ * productos del dueño (/products) -- cada uno arma sus propias sub-rutas
+ * (`${basePath}/brands`, `${basePath}/suppliers`) a partir de el.
  */
-export function BrowseTabs({ active }: { active: "category" | "brand" | "supplier" }) {
+export function BrowseTabs({
+  active,
+  basePath = "/search",
+}: {
+  active: "category" | "brand" | "supplier";
+  basePath?: string;
+}) {
+  const tabs = [
+    { key: "category", label: "Categoria", href: basePath, icon: LayoutGrid },
+    { key: "brand", label: "Marca", href: `${basePath}/brands`, icon: Tag },
+    { key: "supplier", label: "Proveedor", href: `${basePath}/suppliers`, icon: Truck },
+  ] as const;
+
   return (
     <div className="flex gap-2 overflow-x-auto pb-1">
-      {TABS.map((tab) => {
+      {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = tab.key === active;
         return (

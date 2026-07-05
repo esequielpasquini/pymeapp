@@ -105,6 +105,7 @@ export type MissingReportStatus = "open" | "resolved";
 export type MissingReport = {
   id: string;
   organization_id: string;
+  product_id: string | null;
   product_name: string;
   comment: string | null;
   photo_url: string | null;
@@ -122,3 +123,4 @@ export type RoundingMode =
   | "nearest_10"
   | "nearest_50"
   | "nearest_100";
+

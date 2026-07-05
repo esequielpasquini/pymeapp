@@ -3,6 +3,7 @@ import { searchProducts } from "@/features/products/queries";
 import { listCategoriesWithCounts } from "@/features/categories/queries";
 import { SearchBox } from "@/features/products/components/search-box";
 import { CategoryGrid } from "@/features/products/components/category-grid";
+import { BrowseTabs } from "@/features/products/components/browse-tabs";
 import { Button } from "@/components/ui/button";
 import { ProductTable } from "@/features/products/components/product-table";
 import { Plus } from "lucide-react";
@@ -42,6 +43,7 @@ export default async function ProductsPage({
       <div className="space-y-6">
         {header}
         <SearchBox />
+        <BrowseTabs active="category" basePath="/products" />
         <CategoryGrid categories={categories} basePath="/products/category" />
       </div>
     );

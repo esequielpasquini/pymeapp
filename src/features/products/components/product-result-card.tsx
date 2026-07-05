@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { ImageIcon, ChevronDown } from "lucide-react";
+import Link from "next/link";
+import { ImageIcon, ChevronDown, AlertCircle } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import type { Product } from "@/lib/supabase/types";
@@ -79,11 +80,22 @@ export function ProductResultCard({ product }: { product: Product }) {
     </div>
   );
 
+  const reportLink = (
+    <Link
+      href={`/search/report?productId=${product.id}`}
+      className="mt-2 inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground md:text-sm"
+    >
+      <AlertCircle className="h-3.5 w-3.5" />
+      Reportar sin stock
+    </Link>
+  );
+
   if (!hasImage) {
     return (
       <div className="rounded-lg border border-border p-4 md:p-5">
         {header}
         {badges}
+        {reportLink}
       </div>
     );
   }
@@ -109,6 +121,7 @@ export function ProductResultCard({ product }: { product: Product }) {
           />
         </div>
       )}
+      {reportLink}
     </div>
   );
 }
