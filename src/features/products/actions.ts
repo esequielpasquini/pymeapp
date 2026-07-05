@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { parseTags } from "@/features/imports/parse";
 
 const productSchema = z.object({
   brand: z.string().trim().optional(),
@@ -14,6 +15,7 @@ const productSchema = z.object({
   pricePerKilo: z.string().optional(),
   unitPrice: z.string().optional(),
   notes: z.string().trim().optional(),
+  tags: z.string().trim().optional(),
 });
 
 function toNumberOrNull(value: string | undefined): number | null {
@@ -99,6 +101,7 @@ export async function createProduct(
   const supplierId = toSupplierIdOrNull(parsed.data.supplierId);
   const pricePerKilo = toNumberOrNull(parsed.data.pricePerKilo);
   const unitPrice = toNumberOrNull(parsed.data.unitPrice);
+  const tags = parseTags(parsed.data.tags);
 
   const { imageUrl, error: imageError } = await resolveProductImage(
     supabase,
@@ -120,6 +123,7 @@ export async function createProduct(
       unit_price: unitPrice,
       notes: parsed.data.notes || null,
       image_url: imageUrl,
+      tags,
       updated_by: user.id,
     })
     .select("id")
@@ -177,6 +181,7 @@ export async function updateProduct(
   const supplierId = toSupplierIdOrNull(parsed.data.supplierId);
   const pricePerKilo = toNumberOrNull(parsed.data.pricePerKilo);
   const unitPrice = toNumberOrNull(parsed.data.unitPrice);
+  const tags = parseTags(parsed.data.tags);
 
   const { imageUrl, error: imageError } = await resolveProductImage(
     supabase,
@@ -197,6 +202,7 @@ export async function updateProduct(
       unit_price: unitPrice,
       notes: parsed.data.notes || null,
       image_url: imageUrl,
+      tags,
       updated_by: user.id,
     })
     .eq("id", productId);

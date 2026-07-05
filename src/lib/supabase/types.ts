@@ -45,6 +45,7 @@ export type Product = {
   unit_price: number | null;
   notes: string | null;
   image_url: string | null;
+  tags: string[];
   is_active: boolean;
   created_at: string;
   updated_at: string;
@@ -78,6 +79,8 @@ export type ImportItem = {
   supplier_name: string | null;
   category_name: string | null;
   previous_category_name: string | null;
+  tags: string[];
+  previous_tags: string[] | null;
   price_per_kilo: number | null;
   unit_price: number | null;
   previous_price_per_kilo: number | null;

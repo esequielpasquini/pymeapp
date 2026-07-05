@@ -142,6 +142,19 @@ export function ProductForm({
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="tags">Tags</Label>
+        <Input
+          id="tags"
+          name="tags"
+          placeholder="oferta, sin tacc, premium"
+          defaultValue={product?.tags?.join(", ") ?? ""}
+        />
+        <p className="text-xs text-muted-foreground">
+          Separados por coma, punto y coma o &quot;/&quot;. No importa mayúscula o minúscula.
+        </p>
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="image">Imagen (opcional)</Label>
         {product?.image_url && (
           <div className="flex items-center gap-3">

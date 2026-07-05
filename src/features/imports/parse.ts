@@ -8,6 +8,12 @@ export type ParsedRow = {
   categoryName: string | null;
   pricePerKilo: number | null;
   unitPrice: number | null;
+  // Array vacio significa "el Excel no trae tags para esta fila" (ya sea
+  // porque no tiene esa columna, o porque la celda esta en blanco) -- en
+  // ambos casos computeImportDiff preserva los tags que el producto ya
+  // tenia. No hay forma de "vaciar" los tags de un producto existente via
+  // Excel a proposito, mismo comportamiento que ya tiene categoria.
+  tags: string[];
 };
 
 // Nombres de columna aceptados (case-insensitive, sin acentos), para tolerar
@@ -25,6 +31,9 @@ const COLUMN_ALIASES: Record<string, keyof ParsedRow | "skip"> = {
   "precio kilo": "pricePerKilo",
   "precio unitario": "unitPrice",
   "precio unidad": "unitPrice",
+  tags: "tags",
+  etiquetas: "tags",
+  etiqueta: "tags",
 };
 
 function normalizeHeader(header: string): string {
@@ -45,6 +54,22 @@ function toNumber(value: unknown): number | null {
   if (value === null || value === undefined || value === "") return null;
   const n = typeof value === "number" ? value : Number(String(value).replace(",", "."));
   return Number.isFinite(n) ? n : null;
+}
+
+/**
+ * Acepta coma, punto y coma, pipe o barra como delimitador (el dueño pidio
+ * explicitamente no atarse a uno solo) y normaliza cada tag a minuscula sin
+ * espacios de mas, para que "Oferta" y "oferta" sean el mismo tag en toda la
+ * app. Deduplica dentro de la misma celda. Se exporta porque el formulario
+ * de producto (carga manual, no via Excel) usa la misma logica de parseo.
+ */
+export function parseTags(value: unknown): string[] {
+  if (value === null || value === undefined) return [];
+  const parts = String(value)
+    .split(/[,;|/]+/)
+    .map((t) => t.trim().toLowerCase())
+    .filter((t) => t.length > 0);
+  return Array.from(new Set(parts));
 }
 
 export class ImportParseError extends Error {}
@@ -89,6 +114,7 @@ export function parseExcelBuffer(buffer: ArrayBuffer): ParsedRow[] {
       categoryName: null,
       pricePerKilo: null,
       unitPrice: null,
+      tags: [],
     };
 
     for (const [header, key] of headerMap.entries()) {
@@ -99,6 +125,8 @@ export function parseExcelBuffer(buffer: ArrayBuffer): ParsedRow[] {
         result.description = raw ? String(raw).trim() : "";
       } else if (key === "brand" || key === "supplierName" || key === "categoryName") {
         result[key] = raw ? String(raw).trim() : null;
+      } else if (key === "tags") {
+        result.tags = parseTags(raw);
       }
     }
 

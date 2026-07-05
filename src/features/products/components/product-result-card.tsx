@@ -25,13 +25,13 @@ function isStale(updatedAt: string): boolean {
  */
 export function ProductResultCard({
   product,
-  reportBasePath = "/search",
+  basePath = "/search",
 }: {
   product: Product;
-  /** Raiz de rutas para "reportar sin stock" -- este mismo componente se usa
-   * en /search (empleado) y en /ventas (dueño), cada uno con su propia
-   * pantalla de reporte. */
-  reportBasePath?: string;
+  /** Raiz de rutas para "reportar sin stock" y para los tags clickeables --
+   * este mismo componente se usa en /search (empleado) y en /ventas (dueño),
+   * cada uno con sus propias sub-rutas. */
+  basePath?: string;
 }) {
   const [expanded, setExpanded] = useState(false);
   const stale = isStale(product.updated_at);
@@ -96,10 +96,24 @@ export function ProductResultCard({
     </div>
   );
 
+  const tagPills = product.tags.length > 0 && (
+    <div className="mt-2 flex flex-wrap gap-1.5">
+      {product.tags.map((tag) => (
+        <Link
+          key={tag}
+          href={`${basePath}/tag/${encodeURIComponent(tag)}`}
+          className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground md:text-sm"
+        >
+          #{tag}
+        </Link>
+      ))}
+    </div>
+  );
+
   const actions = (
     <div className="mt-3 flex items-center gap-4 border-t border-border pt-3">
       <Link
-        href={`${reportBasePath}/report?productId=${product.id}`}
+        href={`${basePath}/report?productId=${product.id}`}
         className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground md:text-sm"
       >
         <AlertCircle className="h-3.5 w-3.5" />
@@ -114,6 +128,7 @@ export function ProductResultCard({
       <div className="rounded-lg border border-border p-4 md:p-5">
         {header}
         {badges}
+        {tagPills}
         {actions}
       </div>
     );
@@ -130,6 +145,7 @@ export function ProductResultCard({
         {header}
       </button>
       {badges}
+      {tagPills}
       {expanded && (
         <div className="mt-3 aspect-[4/3] w-full overflow-hidden rounded-md bg-muted/30">
           {/* eslint-disable-next-line @next/next/no-img-element */}

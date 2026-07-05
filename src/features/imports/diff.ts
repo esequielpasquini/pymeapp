@@ -10,6 +10,7 @@ export type ExistingProduct = {
   unit_price: number | null;
   supplier_name: string | null;
   category_name: string | null;
+  tags: string[];
 };
 
 export type DiffItem = {
@@ -20,6 +21,12 @@ export type DiffItem = {
   supplierName: string | null;
   categoryName: string | null;
   previousCategoryName: string | null;
+  // Valor final que va a quedar en el producto (ya resuelto: si el Excel no
+  // traia tags para esta fila, es directamente una copia de los tags que el
+  // producto ya tenia). previousTags solo viene distinto de null cuando
+  // realmente van a cambiar, para poder mostrar el "antes" tachado.
+  tags: string[];
+  previousTags: string[] | null;
   pricePerKilo: number | null;
   unitPrice: number | null;
   previousPricePerKilo: number | null;
@@ -28,6 +35,13 @@ export type DiffItem = {
 
 function normalizeForCompare(value: string | null): string {
   return (value ?? "").trim().toLowerCase();
+}
+
+function sameTags(a: string[], b: string[]): boolean {
+  if (a.length !== b.length) return false;
+  const sortedA = [...a].sort();
+  const sortedB = [...b].sort();
+  return sortedA.every((tag, i) => tag === sortedB[i]);
 }
 
 export type DiffSummary = { new: number; modified: number; removed: number; unchanged: number };
@@ -58,6 +72,8 @@ export function computeImportDiff(
         supplierName: row.supplierName,
         categoryName: row.categoryName,
         previousCategoryName: null,
+        tags: row.tags,
+        previousTags: null,
         pricePerKilo: row.pricePerKilo,
         unitPrice: row.unitPrice,
         previousPricePerKilo: null,
@@ -71,15 +87,21 @@ export function computeImportDiff(
 
     // La categoria solo cuenta como "cambio" si el Excel realmente trajo una
     // (fila vieja sin esa columna no debe marcar el producto como
-    // modificado solo porque la categoria actual no esta vacia).
+    // modificado solo porque la categoria actual no esta vacia). Los tags
+    // funcionan igual: fila sin tags (columna ausente o celda en blanco) no
+    // borra los que el producto ya tenia.
     const categoryChanged =
       row.categoryName !== null &&
       normalizeForCompare(row.categoryName) !== normalizeForCompare(existing.category_name);
 
+    const tagsChanged = row.tags.length > 0 && !sameTags(row.tags, existing.tags);
+    const finalTags = tagsChanged ? row.tags : existing.tags;
+
     const changed =
       existing.price_per_kilo !== row.pricePerKilo ||
       existing.unit_price !== row.unitPrice ||
-      categoryChanged;
+      categoryChanged ||
+      tagsChanged;
 
     if (changed) {
       items.push({
@@ -90,6 +112,8 @@ export function computeImportDiff(
         supplierName: row.supplierName,
         categoryName: row.categoryName,
         previousCategoryName: existing.category_name,
+        tags: finalTags,
+        previousTags: tagsChanged ? existing.tags : null,
         pricePerKilo: row.pricePerKilo,
         unitPrice: row.unitPrice,
         previousPricePerKilo: existing.price_per_kilo,

@@ -9,6 +9,7 @@ export type SearchProductsParams = {
   supplierId?: string;
   categoryId?: string;
   brand?: string;
+  tag?: string;
   page?: number;
   includeInactive?: boolean;
 };
@@ -57,6 +58,13 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
     // suficiente para agrupar por marca sin depender de que el dueño haya
     // tipeado siempre la misma capitalizacion.
     q = q.ilike("brand", params.brand);
+  }
+
+  if (params.tag) {
+    // Los tags ya se guardan normalizados a minuscula (ver resolveTags en
+    // actions.ts), asi que alcanza con normalizar el valor recibido para
+    // que el filtro funcione sin importar como haya quedado en la URL.
+    q = q.contains("tags", [params.tag.trim().toLowerCase()]);
   }
 
   if (params.query && params.query.trim().length > 0) {
@@ -146,6 +154,35 @@ export async function listBrandsWithCounts(): Promise<BrandCount[]> {
   }
 
   return Array.from(counts.values()).sort((a, b) => a.brand.localeCompare(b.brand));
+}
+
+export type TagCount = { tag: string; count: number };
+
+/**
+ * Tags distintos con su cantidad de productos activos, para la grilla de
+ * navegacion por tag. Igual que con marca: se agrupa en memoria en vez de
+ * un GROUP BY en PostgREST porque tags es un array (habria que unnest-earlo
+ * en SQL, y a esta escala no vale la pena la complejidad extra).
+ */
+export async function listTagsWithCounts(): Promise<TagCount[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.from("products").select("tags").eq("is_active", true);
+
+  if (error) throw error;
+
+  const counts = new Map<string, number>();
+  for (const row of data ?? []) {
+    const tags = (row.tags as string[] | null) ?? [];
+    for (const raw of tags) {
+      const tag = raw.trim().toLowerCase();
+      if (!tag) continue;
+      counts.set(tag, (counts.get(tag) ?? 0) + 1);
+    }
+  }
+
+  return Array.from(counts.entries())
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => a.tag.localeCompare(b.tag));
 }
 
 export { listSuppliers } from "@/features/suppliers/queries";

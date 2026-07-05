@@ -20,10 +20,12 @@ export default async function ImportsPage() {
       <div>
         <h1 className="text-2xl font-semibold">Importar lista de precios</h1>
         <p className="text-sm text-muted-foreground">
-          Subí tu Excel (columnas: Marca, Descripción, Proveedor, Categoria, Precio por kilo,
-          Precio unitario). La columna Categoria es opcional -- si no la incluís, los productos
-          nuevos quedan en &quot;Sin categoria&quot; y los podés reclasificar después. Vas a ver
-          una vista previa antes de aplicar cualquier cambio.
+          Subí tu Excel (columnas: Marca, Descripción, Proveedor, Categoria, Tags, Precio por kilo,
+          Precio unitario). Categoria y Tags son opcionales -- si no incluís Categoria, los productos
+          nuevos quedan en &quot;Sin categoria&quot; y los podés reclasificar después. En Tags podés
+          poner varios separados por coma, punto y coma o &quot;/&quot; (ej:
+          &quot;oferta, sin tacc&quot;) -- no importa si los escribís en mayúscula o minúscula. Vas a
+          ver una vista previa antes de aplicar cualquier cambio.
         </p>
       </div>
 

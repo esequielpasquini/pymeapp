@@ -101,6 +101,7 @@ export default async function ImportDetailPage({ params }: { params: Promise<{ i
             <TableHead>Descripción</TableHead>
             <TableHead>Proveedor</TableHead>
             <TableHead>Categoria</TableHead>
+            <TableHead>Tags</TableHead>
             <TableHead className="text-right">Precio unitario</TableHead>
             <TableHead className="text-right">Precio x kilo</TableHead>
           </TableRow>
@@ -138,6 +139,28 @@ export default async function ImportDetailPage({ params }: { params: Promise<{ i
                     <span className="text-xs text-muted-foreground">Sin categoria (Excel no la trae)</span>
                   )}
                 </TableCell>
+                <TableCell>
+                  {isRemoved ? (
+                    "—"
+                  ) : item.tags.length > 0 ? (
+                    <div className="flex flex-col gap-1">
+                      <div className="flex flex-wrap gap-1">
+                        {item.tags.map((tag) => (
+                          <Badge key={tag} variant="secondary" className="font-normal">
+                            {tag}
+                          </Badge>
+                        ))}
+                      </div>
+                      {item.previous_tags && item.previous_tags.length > 0 && (
+                        <div className="flex flex-wrap gap-1 text-xs text-muted-foreground line-through">
+                          {item.previous_tags.join(", ")}
+                        </div>
+                      )}
+                    </div>
+                  ) : (
+                    <span className="text-xs text-muted-foreground">Sin tags</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-right">
                   <PriceCell previous={item.previous_unit_price} proposed={item.unit_price} isRemoved={isRemoved} />
                 </TableCell>
@@ -153,7 +176,7 @@ export default async function ImportDetailPage({ params }: { params: Promise<{ i
           })}
           {items.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
+              <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                 No hay cambios detectados en este archivo.
               </TableCell>
             </TableRow>

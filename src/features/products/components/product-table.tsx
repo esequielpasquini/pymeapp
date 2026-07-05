@@ -62,6 +62,15 @@ export function ProductTable({
                     )}
                     {product.supplier?.name && <span>{product.supplier.name}</span>}
                   </div>
+                  {product.tags.length > 0 && (
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {product.tags.map((tag) => (
+                        <span key={tag} className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                          #{tag}
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
                 <div className="shrink-0 text-right">
                   {product.unit_price !== null && (
@@ -89,6 +98,7 @@ export function ProductTable({
               <TableHead>Marca</TableHead>
               {showCategory && <TableHead>Categoria</TableHead>}
               <TableHead>Proveedor</TableHead>
+              <TableHead>Tags</TableHead>
               <TableHead className="text-right">Precio unitario</TableHead>
               <TableHead className="text-right">Precio kg/m/L</TableHead>
             </TableRow>
@@ -115,6 +125,23 @@ export function ProductTable({
                   </TableCell>
                 )}
                 <TableCell>{product.supplier?.name ?? "—"}</TableCell>
+                <TableCell>
+                  {product.tags.length > 0 ? (
+                    <div className="flex flex-wrap gap-1">
+                      {product.tags.map((tag) => (
+                        <Link
+                          key={tag}
+                          href={`/products/tag/${encodeURIComponent(tag)}`}
+                          className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground"
+                        >
+                          #{tag}
+                        </Link>
+                      ))}
+                    </div>
+                  ) : (
+                    "—"
+                  )}
+                </TableCell>
                 <TableCell className="text-right">
                   {product.unit_price !== null ? formatCurrency(product.unit_price) : "—"}
                 </TableCell>

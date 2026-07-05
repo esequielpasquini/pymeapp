@@ -76,3 +76,28 @@ export async function updateSupplier(
   revalidatePath("/search");
   return { error: null };
 }
+
+/**
+ * Eliminar un proveedor es un DELETE real (no soft-delete como productos):
+ * suppliers no tiene historial propio que preservar, y products.supplier_id
+ * es "on delete set null" -- los productos de ese proveedor no desaparecen,
+ * simplemente quedan como "Sin proveedor".
+ */
+export async function deleteSupplier(supplierId: string): Promise<{ error: string | null }> {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const { error } = await supabase.from("suppliers").delete().eq("id", supplierId);
+  if (error) {
+    return { error: "No se pudo eliminar el proveedor." };
+  }
+
+  revalidatePath("/suppliers");
+  revalidatePath("/products");
+  revalidatePath("/search");
+  revalidatePath("/ventas");
+  return { error: null };
+}

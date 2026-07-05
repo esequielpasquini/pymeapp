@@ -11,6 +11,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { SupplierForm } from "@/features/suppliers/components/supplier-form";
+import { DeleteSupplierButton } from "@/features/suppliers/components/delete-supplier-button";
 import { updateSupplier } from "@/features/suppliers/actions";
 import type { Supplier } from "@/lib/supabase/types";
 
@@ -30,6 +31,9 @@ export function EditSupplierDialog({ supplier }: { supplier: Supplier }) {
           <DialogTitle>Editar proveedor</DialogTitle>
         </DialogHeader>
         <SupplierForm action={boundUpdate} supplier={supplier} submitLabel="Guardar cambios" />
+        <div className="border-t border-border pt-4">
+          <DeleteSupplierButton supplier={supplier} onDeleted={() => setOpen(false)} />
+        </div>
       </DialogContent>
     </Dialog>
   );

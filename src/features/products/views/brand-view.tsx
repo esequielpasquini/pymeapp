@@ -63,7 +63,7 @@ export async function BrandProductsView({
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
         {products.map((product) => (
-          <ProductResultCard key={product.id} product={product} reportBasePath={basePath} />
+          <ProductResultCard key={product.id} product={product} basePath={basePath} />
         ))}
         {!q && products.length === 0 && (
           <p className="py-8 text-center text-sm text-muted-foreground md:col-span-2">

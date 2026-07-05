@@ -8,6 +8,7 @@ export type CatalogRow = {
   Descripcion: string;
   Proveedor: string;
   Categoria: string;
+  Tags: string;
   "Precio por kilo": number | "";
   "Precio unitario": number | "";
 };

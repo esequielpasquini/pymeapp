@@ -1,25 +1,26 @@
 import Link from "next/link";
-import { LayoutGrid, Tag, Truck } from "lucide-react";
+import { LayoutGrid, Tag, Truck, Hash } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 /**
- * Tabs para elegir como navegar el catalogo sin escribir: por categoria (ya
- * existia), por marca o por proveedor. `basePath` permite reusar el mismo
- * componente en el buscador del empleado (/search) y en el listado de
- * productos del dueño (/products) -- cada uno arma sus propias sub-rutas
- * (`${basePath}/brands`, `${basePath}/suppliers`) a partir de el.
+ * Tabs para elegir como navegar el catalogo sin escribir: por categoria,
+ * marca, proveedor o tag. `basePath` permite reusar el mismo componente en
+ * el buscador del empleado (/search), el de ventas del dueño (/ventas) y el
+ * listado de productos del dueño (/products) -- cada uno arma sus propias
+ * sub-rutas (`${basePath}/brands`, `${basePath}/tags`, etc) a partir de el.
  */
 export function BrowseTabs({
   active,
   basePath = "/search",
 }: {
-  active: "category" | "brand" | "supplier";
+  active: "category" | "brand" | "supplier" | "tag";
   basePath?: string;
 }) {
   const tabs = [
     { key: "category", label: "Categoria", href: basePath, icon: LayoutGrid },
     { key: "brand", label: "Marca", href: `${basePath}/brands`, icon: Tag },
     { key: "supplier", label: "Proveedor", href: `${basePath}/suppliers`, icon: Truck },
+    { key: "tag", label: "Tags", href: `${basePath}/tags`, icon: Hash },
   ] as const;
 
   return (

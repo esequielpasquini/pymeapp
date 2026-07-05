@@ -44,7 +44,7 @@ export async function POST(request: Request) {
   const { data: existing, error: existingError } = await supabase
     .from("products")
     .select(
-      "id, brand, description, price_per_kilo, unit_price, supplier:suppliers(name), category:categories(name)"
+      "id, brand, description, price_per_kilo, unit_price, tags, supplier:suppliers(name), category:categories(name)"
     )
     .eq("organization_id", profile.organization_id)
     .eq("is_active", true);
@@ -66,6 +66,7 @@ export async function POST(request: Request) {
       unit_price: p.unit_price,
       supplier_name: supplierName,
       category_name: categoryName,
+      tags: (p.tags as string[] | null) ?? [],
     };
   });
 
@@ -99,6 +100,8 @@ export async function POST(request: Request) {
         supplier_name: item.supplierName,
         category_name: item.categoryName,
         previous_category_name: item.previousCategoryName,
+        tags: item.tags,
+        previous_tags: item.previousTags,
         price_per_kilo: item.pricePerKilo,
         unit_price: item.unitPrice,
         previous_price_per_kilo: item.previousPricePerKilo,

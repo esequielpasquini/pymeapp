@@ -28,7 +28,7 @@ export async function GET() {
   const { data: products, error } = await supabase
     .from("products")
     .select(
-      "brand, description, price_per_kilo, unit_price, supplier:suppliers(name), category:categories(name)"
+      "brand, description, price_per_kilo, unit_price, tags, supplier:suppliers(name), category:categories(name)"
     )
     .eq("organization_id", profile.organization_id)
     .eq("is_active", true)
@@ -49,6 +49,7 @@ export async function GET() {
       Descripcion: p.description,
       Proveedor: supplierName,
       Categoria: categoryName,
+      Tags: ((p.tags as string[] | null) ?? []).join(", "),
       "Precio por kilo": p.price_per_kilo ?? "",
       "Precio unitario": p.unit_price ?? "",
     };
