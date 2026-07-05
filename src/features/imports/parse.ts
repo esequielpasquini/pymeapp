@@ -26,10 +26,15 @@ const COLUMN_ALIASES: Record<string, keyof ParsedRow | "skip"> = {
 function normalizeHeader(header: string): string {
   return header
     .toString()
-    .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(/[̀-ͯ]/g, "");
+    .replace(/[̀-ͯ]/g, "")
+    // Colapsa cualquier corrida de espacios (incluye espacio irrompible
+    //  , comun al pegar texto desde otras fuentes) a uno solo. Sin esto,
+    // un encabezado como "Precio  por Kilo" (doble espacio) no matcheaba
+    // ningun alias y la columna se ignoraba sin avisar.
+    .replace(/[\s ]+/g, " ")
+    .trim();
 }
 
 function toNumber(value: unknown): number | null {
