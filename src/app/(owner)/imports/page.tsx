@@ -20,8 +20,8 @@ export default async function ImportsPage() {
         <p className="text-sm text-muted-foreground">
           Subí tu Excel (columnas: Marca, Descripción, Proveedor, Categoria, Precio por kilo,
           Precio unitario). La columna Categoria es opcional -- si no la incluís, los productos
-          nuevos quedan en "Sin categoria" y los podés reclasificar después. Vas a ver una vista
-          previa antes de aplicar cualquier cambio.
+          nuevos quedan en &quot;Sin categoria&quot; y los podés reclasificar después. Vas a ver
+          una vista previa antes de aplicar cualquier cambio.
         </p>
       </div>
 
