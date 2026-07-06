@@ -137,3 +137,45 @@ export async function updateOrganizationLogo(
   revalidatePath("/settings", "layout");
   return { error: null, success: true };
 }
+
+export type DescriptionFormState = { error: string | null; success?: boolean };
+
+/**
+ * Descripcion/tagline del negocio, mostrada en la pantalla de login (ver
+ * get_login_branding en 0014_login_branding.sql). Reusa la misma policy de
+ * UPDATE que el logo (organizations_update: solo el dueño de su organizacion).
+ */
+export async function updateOrganizationDescription(
+  _prev: DescriptionFormState,
+  formData: FormData
+): Promise<DescriptionFormState> {
+  const description = String(formData.get("description") ?? "").trim();
+
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return { error: "No autenticado." };
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("organization_id, role")
+    .eq("id", user.id)
+    .single();
+
+  if (!profile || profile.role !== "owner") {
+    return { error: "Solo el dueño puede cambiar la descripción." };
+  }
+
+  const { error: updateError } = await supabase
+    .from("organizations")
+    .update({ description: description || null })
+    .eq("id", profile.organization_id);
+
+  if (updateError) {
+    return { error: "No se pudo guardar la descripción." };
+  }
+
+  revalidatePath("/settings", "layout");
+  return { error: null, success: true };
+}

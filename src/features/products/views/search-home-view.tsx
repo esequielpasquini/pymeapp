@@ -1,11 +1,12 @@
 import Link from "next/link";
 import { AlertCircle } from "lucide-react";
-import { searchProducts } from "@/features/products/queries";
+import { searchProducts, getMostSearchedProducts } from "@/features/products/queries";
 import { listCategoriesWithCounts } from "@/features/categories/queries";
 import { SearchBox } from "@/features/products/components/search-box";
 import { ProductResultCard } from "@/features/products/components/product-result-card";
 import { CategoryGrid } from "@/features/products/components/category-grid";
 import { BrowseTabs } from "@/features/products/components/browse-tabs";
+import { MostSearchedRow } from "@/features/products/components/most-searched-row";
 import { Button } from "@/components/ui/button";
 
 /**
@@ -29,10 +30,14 @@ export async function SearchHomeView({
   // una grilla de categorias (iconos grandes) para navegar por rubro. El
   // buscador de arriba se mantiene igual en ambos casos.
   if (!q) {
-    const categories = await listCategoriesWithCounts();
+    const [categories, mostSearched] = await Promise.all([
+      listCategoriesWithCounts(),
+      getMostSearchedProducts(),
+    ]);
     return (
       <div className="mx-auto max-w-2xl space-y-6 md:max-w-4xl lg:max-w-5xl">
         <SearchBox placeholder="Que estas buscando?" />
+        <MostSearchedRow products={mostSearched} />
         <BrowseTabs active="category" basePath={basePath} />
         <CategoryGrid categories={categories} basePath={`${basePath}/category`} />
         <div className="pt-2 text-center">

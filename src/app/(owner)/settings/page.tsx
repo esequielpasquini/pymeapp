@@ -1,6 +1,7 @@
 import { listEmployees, getMyOrganization } from "@/features/settings/queries";
 import { InviteEmployeeForm } from "@/features/settings/components/invite-employee-form";
 import { OrgLogoForm } from "@/features/settings/components/org-logo-form";
+import { OrgDescriptionForm } from "@/features/settings/components/org-description-form";
 import { Card, CardHeader, CardTitle, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 
@@ -13,10 +14,13 @@ export default async function SettingsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Logo del negocio</CardTitle>
+          <CardTitle>Logo y descripción del negocio</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6">
           <OrgLogoForm currentLogoUrl={organization?.logo_url ?? null} />
+          <div className="border-t border-border pt-4">
+            <OrgDescriptionForm currentDescription={organization?.description ?? null} />
+          </div>
         </CardContent>
       </Card>
 

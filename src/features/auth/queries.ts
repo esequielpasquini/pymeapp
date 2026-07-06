@@ -1,6 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import type { Profile } from "@/lib/supabase/types";
+import type { LoginBranding, Profile } from "@/lib/supabase/types";
 import type { User } from "@supabase/supabase-js";
 
 export type CurrentSession = {
@@ -55,4 +55,19 @@ export async function getCurrentSession(): Promise<CurrentSession> {
 export async function getCurrentProfile(): Promise<Profile | null> {
   const { profile } = await getCurrentSession();
   return profile;
+}
+
+/**
+ * Nombre/logo/descripcion a mostrar en la pantalla de login. Se llama SIN
+ * sesion (el usuario todavia no se autentico), asi que un select comun a
+ * `organizations` choca con su RLS (organizations_select exige
+ * auth_org_id()). Por eso se usa la funcion `get_login_branding()`
+ * (SECURITY DEFINER, ver 0014_login_branding.sql), habilitada para el rol
+ * anon y que solo expone estas 3 columnas no sensibles.
+ */
+export async function getLoginBranding(): Promise<LoginBranding | null> {
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("get_login_branding").maybeSingle();
+  if (error || !data) return null;
+  return data as LoginBranding;
 }

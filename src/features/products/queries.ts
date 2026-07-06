@@ -23,11 +23,38 @@ export type SearchProductsResult = {
 
 const PRODUCT_SELECT = "*, supplier:suppliers(id, name), category:categories(id, name, icon)";
 
+// Umbral de resultados para considerar que una busqueda de texto fue "puntual"
+// (el empleado encontro el producto especifico que buscaba) en vez de una
+// busqueda amplia/de categoria (ej. "leche", "alimento"). Solo las busquedas
+// puntuales suman al ranking de "mas buscados" -- de lo contrario terminos
+// genericos inflarian el contador de muchos productos sin reflejar
+// popularidad real.
+const SEARCH_HIT_RESULT_THRESHOLD = 8;
+
 /**
- * Busqueda parcial por descripcion/marca/proveedor. Usa ILIKE sobre la
- * columna generada `search_text` (marca + descripcion), acelerado por el
- * indice GIN trigram -- suficiente para decenas de miles de productos por
- * organizacion sin depender de un motor de busqueda externo.
+ * Quita acentos/diacriticos (ej. "cafe" == "café") para que la busqueda no
+ * dependa de que el empleado tipee la tilde correcta. Se aplica en JS al
+ * termino de busqueda en vez de llamar a la funcion unaccent() de Postgres
+ * (evita un round-trip extra) -- equivalente en la practica porque
+ * products.search_text ya se guarda sin acentos (ver unaccent_immutable en
+ * 0001_schema.sql).
+ */
+const COMBINING_DIACRITICS_RE = new RegExp("[\\u0300-\\u036f]", "g");
+
+function stripAccents(value: string): string {
+  return value.normalize("NFD").replace(COMBINING_DIACRITICS_RE, "");
+}
+
+/**
+ * Busqueda parcial por descripcion/marca/proveedor.
+ *
+ * IMPORTANTE: el filtro de texto matchea contra la columna generada
+ * `search_text` (marca + descripcion, sin acentos) en vez de hacer ILIKE
+ * separado sobre `description` y `brand` -- solo `search_text` tiene el
+ * indice GIN trigram (products_search_trgm_idx). Buscar directo sobre
+ * `description`/`brand` (como se hacia antes) ignora ese indice por completo
+ * y fuerza un sequential scan en cada busqueda, que es la razon principal
+ * por la que las busquedas se sentian lentas con el catalogo creciendo.
  */
 export async function searchProducts(params: SearchProductsParams): Promise<SearchProductsResult> {
   const supabase = await createClient();
@@ -69,10 +96,12 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
 
   if (params.query && params.query.trim().length > 0) {
     const term = params.query.trim();
-    // Busca en marca, descripcion o nombre de proveedor (proveedor via join
-    // no se puede ILIKE directo con or() de PostgREST facilmente, asi que
-    // resolvemos supplier ids que matchean y los OR-eamos con los campos
-    // propios del producto).
+    const normalizedTerm = stripAccents(term);
+    // Busca por nombre de proveedor (proveedor via join no se puede ILIKE
+    // directo con or() de PostgREST facilmente, asi que resolvemos supplier
+    // ids que matchean y los OR-eamos con el filtro de texto propio del
+    // producto). La tabla suppliers es chica (decenas de filas por
+    // organizacion) asi que este round-trip adicional no pesa.
     const { data: matchingSuppliers } = await supabase
       .from("suppliers")
       .select("id")
@@ -80,7 +109,10 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
 
     const supplierIds = (matchingSuppliers ?? []).map((s: { id: string }) => s.id);
 
-    const orParts = [`description.ilike.%${term}%`, `brand.ilike.%${term}%`];
+    // search_text = unaccent(marca + ' ' + descripcion), con indice GIN
+    // trigram -- un solo ilike acá reemplaza los dos ilike sin indice de
+    // antes (ver comentario de la funcion).
+    const orParts = [`search_text.ilike.%${normalizedTerm}%`];
     if (supplierIds.length > 0) {
       orParts.push(`supplier_id.in.(${supplierIds.join(",")})`);
     }
@@ -90,12 +122,48 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
   const { data, error, count } = await q;
   if (error) throw error;
 
+  // "Mas buscados": solo cuenta como hit puntual cuando la busqueda de texto
+  // devolvio pocos resultados (ver SEARCH_HIT_RESULT_THRESHOLD). No se espera
+  // esta llamada (fire-and-forget) para no sumarle latencia a la respuesta
+  // de busqueda -- es un nice-to-have, no puede hacer que la busqueda en si
+  // se sienta mas lenta.
+  if (
+    params.query &&
+    params.query.trim().length >= 2 &&
+    data &&
+    data.length > 0 &&
+    (count ?? 0) <= SEARCH_HIT_RESULT_THRESHOLD
+  ) {
+    const productIds = data.map((p) => (p as { id: string }).id);
+    void supabase.rpc("bump_product_search_counts", { p_product_ids: productIds });
+  }
+
   return {
     products: (data ?? []) as unknown as Product[],
     total: count ?? 0,
     page,
     pageSize: PAGE_SIZE,
   };
+}
+
+/**
+ * Top N de productos con al menos una busqueda puntual registrada (ver
+ * bump_product_search_counts en 0015_product_search_stats.sql), para el row
+ * fijo de "Mas buscados" en la pantalla de inicio de busqueda.
+ */
+export async function getMostSearchedProducts(limit = 5): Promise<Product[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select(PRODUCT_SELECT)
+    .eq("is_active", true)
+    .gt("search_count", 0)
+    .order("search_count", { ascending: false })
+    .order("last_searched_at", { ascending: false })
+    .limit(limit);
+
+  if (error) throw error;
+  return (data ?? []) as unknown as Product[];
 }
 
 export async function getProduct(id: string): Promise<Product | null> {

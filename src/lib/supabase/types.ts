@@ -14,7 +14,14 @@ export type Organization = {
   name: string;
   slug: string;
   logo_url: string | null;
+  description: string | null;
   created_at: string;
+};
+
+export type LoginBranding = {
+  name: string;
+  logo_url: string | null;
+  description: string | null;
 };
 
 export type Supplier = {
@@ -47,6 +54,8 @@ export type Product = {
   image_url: string | null;
   tags: string[];
   is_active: boolean;
+  search_count: number;
+  last_searched_at: string | null;
   created_at: string;
   updated_at: string;
   updated_by: string | null;
