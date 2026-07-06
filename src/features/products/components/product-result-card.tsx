@@ -139,7 +139,7 @@ export function ProductResultCard({
 
   if (!hasImage) {
     return (
-      <div className="rounded-lg border border-border p-4 transition-colors hover:bg-muted/40 md:p-5">
+      <div className="rounded-lg border border-border p-4 transition-colors hover:border-primary/40 hover:bg-muted/70 md:p-5">
         {header}
         {badges}
         {tagPills}
@@ -149,7 +149,7 @@ export function ProductResultCard({
   }
 
   return (
-    <div className="rounded-lg border border-border p-4 transition-colors hover:bg-muted/40 md:p-5">
+    <div className="rounded-lg border border-border p-4 transition-colors hover:border-primary/40 hover:bg-muted/70 md:p-5">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
