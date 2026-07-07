@@ -4,6 +4,7 @@ import { getCurrentSession } from "@/features/auth/queries";
 import { getMyOrganization } from "@/features/settings/queries";
 import { logout } from "@/features/auth/actions";
 import { NoOrganizationScreen } from "@/features/auth/components/no-organization-screen";
+import { SessionCheckIssueScreen } from "@/features/auth/components/session-check-issue-screen";
 import { OrgBrand } from "@/features/dashboard/components/org-brand";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
@@ -11,9 +12,15 @@ import { LogOut } from "lucide-react";
 // Pantalla del empleado: mobile-first, sin barra lateral ni nada que
 // distraiga del buscador. Usable desde un celular sin capacitación.
 export default async function EmployeeLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile } = await getCurrentSession();
+  const { user, profile, inconclusive } = await getCurrentSession();
 
-  if (!user) redirect("/login");
+  if (!user) {
+    // Si no pudimos confirmar la sesion por un problema transitorio (wifi,
+    // timeout, rate limit), NO mandamos a /login -- podria estar
+    // perfectamente logueado. Ver getVerifiedUser().
+    if (inconclusive) return <SessionCheckIssueScreen />;
+    redirect("/login");
+  }
   if (!profile) return <NoOrganizationScreen email={user.email} />;
 
   const organization = await getMyOrganization();

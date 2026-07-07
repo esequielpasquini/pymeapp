@@ -1,5 +1,6 @@
 import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
+import { getVerifiedUser } from "@/lib/supabase/get-verified-user";
 
 type CookieToSet = { name: string; value: string; options: CookieOptions };
 
@@ -28,13 +29,15 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, inconclusive } = await getVerifiedUser(supabase);
 
   const isPublicPath = request.nextUrl.pathname.startsWith("/login");
 
-  if (!user && !isPublicPath) {
+  // Si no pudimos confirmar la sesion por un problema transitorio (ver
+  // getVerifiedUser), no forzamos el redirect -- dejamos pasar el request
+  // tal cual. Forzar el logout aca es lo que causaba que un empleado con
+  // sesion perfectamente valida terminara en /login por un blip de red.
+  if (!user && !inconclusive && !isPublicPath) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     return NextResponse.redirect(url);

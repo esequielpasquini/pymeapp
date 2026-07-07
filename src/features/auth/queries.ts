@@ -1,11 +1,16 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { getVerifiedUser } from "@/lib/supabase/get-verified-user";
 import type { LoginBranding, Profile } from "@/lib/supabase/types";
 import type { User } from "@supabase/supabase-js";
 
 export type CurrentSession = {
   user: User | null;
   profile: Profile | null;
+  /** ver getVerifiedUser() -- true si no pudimos confirmar la sesion por un
+   * problema transitorio. Los layouts no deberian redirigir a /login en ese
+   * caso, solo cuando `user` es null y esto es false. */
+  inconclusive: boolean;
 };
 
 /**
@@ -20,11 +25,9 @@ export type CurrentSession = {
  */
 export async function getCurrentSession(): Promise<CurrentSession> {
   const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
+  const { user, inconclusive } = await getVerifiedUser(supabase);
 
-  if (!user) return { user: null, profile: null };
+  if (!user) return { user: null, profile: null, inconclusive };
 
   const { data, error } = await supabase
     .from("profiles")
@@ -43,7 +46,7 @@ export async function getCurrentSession(): Promise<CurrentSession> {
     );
   }
 
-  return { user, profile: (data as Profile | null) ?? null };
+  return { user, profile: (data as Profile | null) ?? null, inconclusive: false };
 }
 
 /**
