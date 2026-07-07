@@ -125,7 +125,7 @@ export function ProductForm({
           />
         </div>
         <div className="space-y-2">
-          <Label htmlFor="pricePerKilo">Precio por kilo / metro / litro</Label>
+          <Label htmlFor="pricePerKilo">Precio por kilo</Label>
           <Input
             id="pricePerKilo"
             name="pricePerKilo"

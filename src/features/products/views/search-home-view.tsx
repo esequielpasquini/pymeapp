@@ -3,7 +3,7 @@ import { AlertCircle } from "lucide-react";
 import { searchProducts, getMostSearchedProducts } from "@/features/products/queries";
 import { listCategoriesWithCounts } from "@/features/categories/queries";
 import { SearchBox } from "@/features/products/components/search-box";
-import { ProductResultCard } from "@/features/products/components/product-result-card";
+import { ProductSearchResults } from "@/features/products/components/product-search-results";
 import { CategoryGrid } from "@/features/products/components/category-grid";
 import { BrowseTabs } from "@/features/products/components/browse-tabs";
 import { MostSearchedRow } from "@/features/products/components/most-searched-row";
@@ -57,26 +57,7 @@ export async function SearchHomeView({
   return (
     <div className="mx-auto max-w-2xl space-y-4 md:max-w-4xl lg:max-w-5xl">
       <SearchBox placeholder="Que estas buscando?" />
-
-      {products.length === 0 && (
-        <div className="rounded-lg border border-dashed border-border p-6 text-center md:p-8">
-          <p className="mb-3 text-sm text-muted-foreground md:text-base">
-            No encontramos &quot;{q}&quot;. Faltaba en el sistema?
-          </p>
-          <Button asChild size="lg" className="md:h-12 md:px-6 md:text-base">
-            <Link href={`${basePath}/report?name=${encodeURIComponent(q)}`}>
-              <AlertCircle className="mr-2 h-4 w-4" />
-              Reportar faltante
-            </Link>
-          </Button>
-        </div>
-      )}
-
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-        {products.map((product) => (
-          <ProductResultCard key={product.id} product={product} basePath={basePath} isOwner={isOwner} />
-        ))}
-      </div>
+      <ProductSearchResults products={products} q={q} basePath={basePath} isOwner={isOwner} />
     </div>
   );
 }
