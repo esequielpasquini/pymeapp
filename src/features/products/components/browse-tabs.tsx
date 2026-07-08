@@ -31,10 +31,16 @@ export function BrowseTabs({
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = filters.browse === tab.key || Boolean(filters[tab.key]);
+        // "Categoria" funciona como un reinicio: vuelve a la pantalla de
+        // aterrizaje sin ningun filtro puesto (categoria es el punto de
+        // entrada por rubro). Los otros tabs siguen sumando su selector
+        // sobre los filtros ya aplicados.
+        const href =
+          tab.key === "category" ? basePath : buildFilterHref(basePath, filters, { browse: tab.key });
         return (
           <Link
             key={tab.key}
-            href={buildFilterHref(basePath, filters, { browse: tab.key })}
+            href={href}
             className={cn(
               "flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors md:text-base",
               isActive
