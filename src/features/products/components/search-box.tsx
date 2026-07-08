@@ -32,6 +32,7 @@ export function SearchBox({ placeholder }: { placeholder?: string }) {
   const [isListening, setIsListening] = useState(false);
   const [voiceError, setVoiceError] = useState(false);
   const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const voiceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const timeout = setTimeout(() => {
@@ -63,12 +64,27 @@ export function SearchBox({ placeholder }: { placeholder?: string }) {
     setVoiceSupported(Boolean(window.SpeechRecognition || window.webkitSpeechRecognition));
     return () => {
       recognitionRef.current?.abort();
+      if (voiceTimeoutRef.current) clearTimeout(voiceTimeoutRef.current);
     };
   }, []);
 
+  // Safari/iOS soporta la API pero a veces nunca dispara onend ni onerror
+  // (queda "escuchando" para siempre en la UI aunque el reconocimiento ya
+  // murio). Esta funcion es el unico lugar que apaga isListening, para que
+  // tanto un resultado normal como el timeout de seguridad de mas abajo
+  // usen el mismo camino y no se pisen.
+  function stopListening() {
+    if (voiceTimeoutRef.current) {
+      clearTimeout(voiceTimeoutRef.current);
+      voiceTimeoutRef.current = null;
+    }
+    setIsListening(false);
+  }
+
   function handleVoiceClick() {
     if (isListening) {
-      recognitionRef.current?.stop();
+      recognitionRef.current?.abort();
+      stopListening();
       return;
     }
 
@@ -88,13 +104,23 @@ export function SearchBox({ placeholder }: { placeholder?: string }) {
     recognition.onerror = () => {
       setVoiceError(true);
       setTimeout(() => setVoiceError(false), 2500);
+      stopListening();
     };
-    recognition.onend = () => setIsListening(false);
+    recognition.onend = stopListening;
 
     recognitionRef.current = recognition;
     setVoiceError(false);
     setIsListening(true);
     recognition.start();
+
+    // Salvavidas: en iOS a veces no llega ni onresult, ni onerror, ni onend.
+    // Sin esto el boton queda "tildado" en modo escuchando para siempre.
+    voiceTimeoutRef.current = setTimeout(() => {
+      recognitionRef.current?.abort();
+      stopListening();
+      setVoiceError(true);
+      setTimeout(() => setVoiceError(false), 2500);
+    }, 8000);
   }
 
   const hasAnythingToClear =
