@@ -21,18 +21,25 @@ export function CartPanel() {
 
   return (
     <>
-      {isOpen && (
-        // Sin "sm:hidden": en tablet/desktop el panel no cubre toda la
-        // pantalla (max-w-sm), asi que sin este backdrop no habia forma de
-        // cerrar tocando la busqueda de atras -- tocar afuera del panel
-        // colapsa el desplegable.
-        <button
-          type="button"
-          onClick={() => setIsOpen(false)}
-          aria-label="Cerrar compras"
-          className="fixed inset-0 z-20 bg-black/30"
-        />
-      )}
+      {/*
+        Nunca se desmonta -- se anima con opacidad, igual que el panel de
+        abajo. Montar/desmontar un "fixed inset-0" via {isOpen && ...} le
+        dejaba a Chrome Android una tile vieja en cache que reaparecia como
+        un velo oscuro fantasma al scrollear la lista de productos (bug de
+        compositor bastante conocido con overlays fixed que entran/salen del
+        DOM). Con opacity + pointer-events el elemento queda siempre
+        presente y el navegador nunca tiene que recomponer la capa de cero.
+      */}
+      <button
+        type="button"
+        onClick={() => setIsOpen(false)}
+        aria-label="Cerrar compras"
+        tabIndex={isOpen ? 0 : -1}
+        className={cn(
+          "fixed inset-0 z-20 bg-black/30 transition-opacity duration-200",
+          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
+        )}
+      />
 
       {/* Tab colapsado, siempre visible mientras el panel esta cerrado. */}
       <button
