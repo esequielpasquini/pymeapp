@@ -1,37 +1,40 @@
 import Link from "next/link";
-import { LayoutGrid, Tag, Truck, Hash } from "lucide-react";
+import { LayoutGrid, Tag, Truck, Hash, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { buildFilterHref, type BrowseDimension, type ProductFilters } from "@/features/products/filters";
 
 /**
- * Tabs para elegir como navegar el catalogo sin escribir: por categoria,
- * marca, proveedor o tag. `basePath` permite reusar el mismo componente en
- * el buscador del empleado (/search) y en el listado de productos del dueño
- * (/products) -- cada uno arma sus propias sub-rutas (`${basePath}/brands`,
- * `${basePath}/tags`, etc) a partir de el.
+ * Tabs para elegir por que dimension seguir filtrando: categoria, marca,
+ * proveedor o tag. Tocar un tab ABRE el selector de tiles de esa dimension
+ * SIN pisar los filtros ya aplicados (ver buildFilterHref) -- se puede
+ * categoria + marca + proveedor + tag al mismo tiempo. Se marca como activo
+ * tanto el tab que se esta explorando ahora (`browse`) como cualquier
+ * dimension que ya tenga un filtro puesto, para que quede claro que esta
+ * afectando el resultado.
  */
 export function BrowseTabs({
-  active,
-  basePath = "/search",
+  basePath,
+  filters,
 }: {
-  active: "category" | "brand" | "supplier" | "tag";
-  basePath?: string;
+  basePath: string;
+  filters: ProductFilters;
 }) {
-  const tabs = [
-    { key: "category", label: "Categoria", href: basePath, icon: LayoutGrid },
-    { key: "brand", label: "Marca", href: `${basePath}/brands`, icon: Tag },
-    { key: "supplier", label: "Proveedor", href: `${basePath}/suppliers`, icon: Truck },
-    { key: "tag", label: "Tags", href: `${basePath}/tags`, icon: Hash },
-  ] as const;
+  const tabs: { key: BrowseDimension; label: string; icon: LucideIcon }[] = [
+    { key: "category", label: "Categoria", icon: LayoutGrid },
+    { key: "brand", label: "Marca", icon: Tag },
+    { key: "supplier", label: "Proveedor", icon: Truck },
+    { key: "tag", label: "Tags", icon: Hash },
+  ];
 
   return (
     <div className="flex gap-2 overflow-x-auto pb-1">
       {tabs.map((tab) => {
         const Icon = tab.icon;
-        const isActive = tab.key === active;
+        const isActive = filters.browse === tab.key || Boolean(filters[tab.key]);
         return (
           <Link
             key={tab.key}
-            href={tab.href}
+            href={buildFilterHref(basePath, filters, { browse: tab.key })}
             className={cn(
               "flex shrink-0 items-center gap-2 rounded-full border px-4 py-2 text-sm font-medium transition-colors md:text-base",
               isActive

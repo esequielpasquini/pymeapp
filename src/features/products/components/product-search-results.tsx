@@ -19,7 +19,10 @@ export function ProductSearchResults({
   isOwner = false,
 }: {
   products: Product[];
-  q: string;
+  /** Puede no haber texto de busqueda si lo que trajo estos resultados fue
+   * solo una combinacion de filtros (categoria/marca/proveedor/tag) -- el
+   * estado vacio cambia de mensaje segun haya o no un termino tipeado. */
+  q?: string;
   basePath: string;
   isOwner?: boolean;
 }) {
@@ -28,10 +31,14 @@ export function ProductSearchResults({
       {products.length === 0 && (
         <div className="rounded-lg border border-dashed border-border p-6 text-center md:p-8">
           <p className="mb-3 text-sm text-muted-foreground md:text-base">
-            No encontramos &quot;{q}&quot;. Faltaba en el sistema?
+            {q ? (
+              <>No encontramos &quot;{q}&quot;. Faltaba en el sistema?</>
+            ) : (
+              "No hay productos que coincidan con los filtros aplicados."
+            )}
           </p>
           <Button asChild size="lg" className="md:h-12 md:px-6 md:text-base">
-            <Link href={`${basePath}/report?name=${encodeURIComponent(q)}`}>
+            <Link href={q ? `${basePath}/report?name=${encodeURIComponent(q)}` : `${basePath}/report`}>
               <AlertCircle className="mr-2 h-4 w-4" />
               Reportar faltante
             </Link>

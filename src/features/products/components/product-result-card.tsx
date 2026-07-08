@@ -106,7 +106,7 @@ export function ProductResultCard({
       {product.tags.map((tag) => (
         <Link
           key={tag}
-          href={`${basePath}/tag/${encodeURIComponent(tag)}`}
+          href={`${basePath}?tag=${encodeURIComponent(tag)}`}
           className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground md:text-sm"
         >
           #{tag}

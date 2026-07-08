@@ -26,6 +26,10 @@ export function SearchBox({ placeholder }: { placeholder?: string }) {
         params.delete("q");
       }
       params.delete("page");
+      // Escribir un termino de busqueda tiene prioridad sobre cualquier
+      // selector de tiles que estuviera abierto (categoria/marca/proveedor/
+      // tag) -- se cierra y se muestran resultados directamente.
+      params.delete("browse");
       startTransition(() => {
         router.replace(`${pathname}?${params.toString()}`);
       });
@@ -43,7 +47,6 @@ export function SearchBox({ placeholder }: { placeholder?: string }) {
         onChange={(e) => setValue(e.target.value)}
         placeholder={placeholder ?? "Buscar por descripción, marca o proveedor..."}
         className="h-12 pl-10 text-base md:h-14 md:pl-12 md:text-lg"
-        autoFocus
       />
     </div>
   );

@@ -1,63 +1,197 @@
 import Link from "next/link";
-import { AlertCircle } from "lucide-react";
-import { searchProducts, getMostSearchedProducts } from "@/features/products/queries";
-import { listCategoriesWithCounts } from "@/features/categories/queries";
+import { AlertCircle, X, Tag as TagIcon, Truck, Hash } from "lucide-react";
+import { searchProducts, getMostSearchedProducts, listBrandsWithCounts, listTagsWithCounts } from "@/features/products/queries";
+import { listCategoriesWithCounts, getCategory } from "@/features/categories/queries";
+import { listSuppliersWithCounts, getSupplier } from "@/features/suppliers/queries";
 import { SearchBox } from "@/features/products/components/search-box";
 import { ProductSearchResults } from "@/features/products/components/product-search-results";
 import { CategoryGrid } from "@/features/products/components/category-grid";
 import { BrowseTabs } from "@/features/products/components/browse-tabs";
+import { SimpleTileGrid } from "@/features/products/components/simple-tile-grid";
 import { MostSearchedRow } from "@/features/products/components/most-searched-row";
 import { Button } from "@/components/ui/button";
+import {
+  buildFilterHref,
+  buildRemoveFilterHref,
+  hasActiveFilters,
+  type BrowseDimension,
+  type ProductFilters,
+} from "@/features/products/filters";
 
 /**
  * Pantalla principal de "buscar un producto y ver su precio", compartida
- * entre /search (empleado) y /products (dueño) -- son la misma experiencia,
- * solo cambia `basePath` para que los links internos (categorias, marca,
- * proveedor, reportar faltante) queden bajo la seccion correcta, y `isOwner`
- * para mostrar el link de edicion y el boton de WhatsApp solo cuando el
- * dueño la mira desde /products.
+ * entre /search (empleado) y /products (dueño). Todos los filtros
+ * (categoria/marca/proveedor/tag/texto) viven como query params de ESTA
+ * misma pantalla y se combinan libremente entre si (ver
+ * features/products/filters.ts) -- antes cada dimension tenia su propia
+ * ruta anidada y aplicar una te hacia perder las demas.
+ *
+ * `browse` indica que selector de tiles esta abierto ahora mismo (para
+ * agregar un filtro mas); si no hay ningun filtro aplicado y no se pidio
+ * ningun selector puntual, por defecto se muestra el de categorias (la
+ * pantalla de aterrizaje de siempre).
  */
 export async function SearchHomeView({
-  q,
   basePath,
   isOwner = false,
+  q,
+  category,
+  brand,
+  supplier,
+  tag,
+  browse,
+  page,
 }: {
-  q?: string;
   basePath: string;
   isOwner?: boolean;
+  q?: string;
+  category?: string;
+  brand?: string;
+  supplier?: string;
+  tag?: string;
+  browse?: BrowseDimension;
+  page?: string;
 }) {
-  // Sin busqueda activa: en vez de listar todos los productos, se muestra
-  // una grilla de categorias (iconos grandes) para navegar por rubro. El
-  // buscador de arriba se mantiene igual en ambos casos.
-  if (!q) {
-    const [categories, mostSearched] = await Promise.all([
-      listCategoriesWithCounts(),
-      getMostSearchedProducts(),
-    ]);
-    return (
-      <div className="mx-auto max-w-2xl space-y-6 md:max-w-4xl lg:max-w-5xl">
-        <SearchBox placeholder="Que estas buscando?" />
-        <MostSearchedRow products={mostSearched} />
-        <BrowseTabs active="category" basePath={basePath} />
-        <CategoryGrid categories={categories} basePath={`${basePath}/category`} />
-        <div className="pt-2 text-center">
-          <Button asChild variant="outline" size="lg" className="md:h-12 md:px-6 md:text-base">
-            <Link href={`${basePath}/report`}>
-              <AlertCircle className="mr-2 h-4 w-4" />
-              Reportar un producto faltante
-            </Link>
-          </Button>
+  const filters: ProductFilters = { q, category, brand, supplier, tag, browse };
+  const anyFilter = hasActiveFilters(filters);
+  const isPristineLanding = !anyFilter && !browse;
+  const effectiveBrowse: BrowseDimension | undefined = browse ?? (!anyFilter ? "category" : undefined);
+
+  // Nombres legibles para las chips de categoria/proveedor -- marca y tag ya
+  // son el nombre en si (texto libre), no hace falta resolverlos.
+  const [categoryObj, supplierObj] = await Promise.all([
+    category ? getCategory(category) : Promise.resolve(null),
+    supplier ? getSupplier(supplier) : Promise.resolve(null),
+  ]);
+
+  const chips: { key: "category" | "brand" | "supplier" | "tag"; label: string }[] = [];
+  if (category) chips.push({ key: "category", label: categoryObj?.name ?? "Categoria" });
+  if (brand) chips.push({ key: "brand", label: brand });
+  if (supplier) chips.push({ key: "supplier", label: supplierObj?.name ?? "Proveedor" });
+  if (tag) chips.push({ key: "tag", label: `#${tag}` });
+
+  let pickerOrResults: React.ReactNode;
+  let pagination: React.ReactNode = null;
+
+  if (effectiveBrowse) {
+    if (effectiveBrowse === "category") {
+      const categories = await listCategoriesWithCounts();
+      pickerOrResults = <CategoryGrid categories={categories} basePath={basePath} filters={filters} />;
+    } else if (effectiveBrowse === "brand") {
+      const brands = await listBrandsWithCounts();
+      pickerOrResults = (
+        <SimpleTileGrid
+          items={brands.map((b) => ({ id: b.brand, name: b.brand, count: b.count }))}
+          basePath={basePath}
+          filters={filters}
+          filterKey="brand"
+          icon={TagIcon}
+          emptyLabel="Todavia no hay productos con marca cargada."
+        />
+      );
+    } else if (effectiveBrowse === "supplier") {
+      const suppliers = await listSuppliersWithCounts();
+      pickerOrResults = (
+        <SimpleTileGrid
+          items={suppliers.map((s) => ({ id: s.id, name: s.name, count: s.product_count ?? 0 }))}
+          basePath={basePath}
+          filters={filters}
+          filterKey="supplier"
+          icon={Truck}
+          emptyLabel="Todavia no hay proveedores cargados."
+        />
+      );
+    } else {
+      const tags = await listTagsWithCounts();
+      pickerOrResults = (
+        <SimpleTileGrid
+          items={tags.map((t) => ({ id: t.tag, name: `#${t.tag}`, count: t.count }))}
+          basePath={basePath}
+          filters={filters}
+          filterKey="tag"
+          icon={Hash}
+          emptyLabel="Todavia no hay productos con tags cargados."
+        />
+      );
+    }
+  } else {
+    const { products, total, pageSize } = await searchProducts({
+      query: q,
+      categoryId: category,
+      brand,
+      supplierId: supplier,
+      tag,
+      page: page ? Number(page) : 1,
+    });
+
+    const currentPage = page ? Number(page) : 1;
+    const totalPages = Math.max(1, Math.ceil(total / pageSize));
+
+    pickerOrResults = <ProductSearchResults products={products} q={q} basePath={basePath} isOwner={isOwner} />;
+
+    if (totalPages > 1) {
+      pagination = (
+        <div className="flex flex-wrap items-center justify-center gap-2">
+          {Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+            <Button
+              key={p}
+              asChild
+              variant={p === currentPage ? "default" : "outline"}
+              size="default"
+              className="h-11 w-11 md:h-12 md:w-12 md:text-base"
+            >
+              <Link href={buildFilterHref(basePath, filters, { page: String(p) })}>{p}</Link>
+            </Button>
+          ))}
         </div>
-      </div>
-    );
+      );
+    }
   }
 
-  const { products } = await searchProducts({ query: q });
+  const mostSearched = isPristineLanding ? await getMostSearchedProducts() : [];
 
   return (
     <div className="mx-auto max-w-2xl space-y-4 md:max-w-4xl lg:max-w-5xl">
       <SearchBox placeholder="Que estas buscando?" />
-      <ProductSearchResults products={products} q={q} basePath={basePath} isOwner={isOwner} />
+
+      {isPristineLanding && <MostSearchedRow products={mostSearched} />}
+
+      {chips.length > 0 && (
+        <div className="flex flex-wrap gap-2">
+          {chips.map((chip) => (
+            <Link
+              key={chip.key}
+              href={buildRemoveFilterHref(basePath, filters, chip.key)}
+              className="inline-flex items-center gap-1.5 rounded-full bg-primary/10 px-3 py-1.5 text-sm text-primary hover:bg-primary/20"
+            >
+              {chip.label}
+              <X className="h-3.5 w-3.5" />
+            </Link>
+          ))}
+        </div>
+      )}
+
+      <BrowseTabs basePath={basePath} filters={filters} />
+
+      {pickerOrResults}
+
+      {isPristineLanding && (
+        <div className="pt-2 text-center">
+          <Button
+            asChild
+            variant="outline"
+            size="lg"
+            className="h-auto w-full whitespace-normal py-3 sm:w-auto md:h-12 md:px-6 md:text-base"
+          >
+            <Link href={`${basePath}/report`}>
+              <AlertCircle className="mr-2 h-4 w-4 shrink-0" />
+              Reportar un producto faltante
+            </Link>
+          </Button>
+        </div>
+      )}
+
+      {pagination}
     </div>
   );
 }

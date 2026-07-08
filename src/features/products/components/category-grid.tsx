@@ -1,20 +1,23 @@
 import Link from "next/link";
 import { CategoryIcon } from "@/features/categories/components/category-icon";
+import { buildFilterHref, type ProductFilters } from "@/features/products/filters";
 import type { Category } from "@/lib/supabase/types";
 
 /**
  * Grilla de iconos grandes de categorias. La usan tanto el buscador del
  * empleado (/search) como el listado de productos del dueno (/products) --
  * en vez de listar todos los productos de una, se navega por categoria.
- * `basePath` define a donde apunta cada tile al clickear (cada pantalla
- * tiene su propia ruta de detalle de categoria con permisos distintos).
+ * Tocar un tile agrega (o reemplaza) el filtro de categoria sobre los demas
+ * filtros ya aplicados (`filters`), sin perderlos -- ver buildFilterHref.
  */
 export function CategoryGrid({
   categories,
   basePath,
+  filters,
 }: {
   categories: Category[];
   basePath: string;
+  filters: ProductFilters;
 }) {
   if (categories.length === 0) {
     return (
@@ -29,7 +32,7 @@ export function CategoryGrid({
       {categories.map((category) => (
         <Link
           key={category.id}
-          href={`${basePath}/${category.id}`}
+          href={buildFilterHref(basePath, filters, { category: category.id, browse: undefined })}
           className="flex flex-col items-center gap-2 rounded-xl border border-border p-6 text-center transition-colors hover:bg-muted/50 active:scale-[0.97] active:bg-muted md:gap-3 md:p-8"
         >
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10 text-primary md:h-20 md:w-20">

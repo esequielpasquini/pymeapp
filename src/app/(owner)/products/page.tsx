@@ -1,22 +1,31 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { SearchHomeView } from "@/features/products/views/search-home-view";
+import type { BrowseDimension } from "@/features/products/filters";
 import { Button } from "@/components/ui/button";
 
 /**
  * Vista de productos del dueño: la misma experiencia que el buscador del
  * empleado (tiles de categoria/marca/proveedor/tag, sin necesidad de
- * tipear) mas un link de edicion en cada tarjeta. Antes esta pantalla tenia
- * su propia implementacion (grilla de categorias + tabla) separada de
+ * tipear, todos combinables entre si) mas un link de edicion en cada
+ * tarjeta. Antes esta pantalla tenia su propia implementacion separada de
  * /ventas -- se unificaron en una sola vista compartida (SearchHomeView)
  * para no mantener dos UIs casi identicas.
  */
 export default async function ProductsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ q?: string }>;
+  searchParams: Promise<{
+    q?: string;
+    category?: string;
+    brand?: string;
+    supplier?: string;
+    tag?: string;
+    browse?: BrowseDimension;
+    page?: string;
+  }>;
 }) {
-  const { q } = await searchParams;
+  const { q, category, brand, supplier, tag, browse, page } = await searchParams;
 
   return (
     <div className="space-y-6">
@@ -33,7 +42,17 @@ export default async function ProductsPage({
         </Button>
       </div>
 
-      <SearchHomeView q={q} basePath="/products" isOwner />
+      <SearchHomeView
+        q={q}
+        category={category}
+        brand={brand}
+        supplier={supplier}
+        tag={tag}
+        browse={browse}
+        page={page}
+        basePath="/products"
+        isOwner
+      />
     </div>
   );
 }
