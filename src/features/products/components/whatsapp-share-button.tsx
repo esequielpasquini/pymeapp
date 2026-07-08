@@ -23,7 +23,7 @@ function buildShareMessage(product: Product): string {
 
   const priceLines: string[] = [];
   if (product.unit_price !== null) {
-    priceLines.push(`Precio unitario: ${formatCurrency(product.unit_price)}`);
+    priceLines.push(`Precio por bolsa: ${formatCurrency(product.unit_price)}`);
   }
   if (product.price_per_kilo !== null) {
     priceLines.push(`Precio por kg: ${formatCurrency(product.price_per_kilo)}`);
