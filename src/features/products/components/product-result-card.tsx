@@ -6,6 +6,7 @@ import { ImageIcon, ChevronDown, AlertCircle, Pencil } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppShareButton } from "@/features/products/components/whatsapp-share-button";
+import { AddToCartButton } from "@/features/cart/components/add-to-cart-button";
 import type { Product } from "@/lib/supabase/types";
 
 function isStale(updatedAt: string): boolean {
@@ -134,6 +135,7 @@ export function ProductResultCard({
         Reportar sin stock
       </Link>
       {isOwner && <WhatsAppShareButton product={product} />}
+      <AddToCartButton product={product} />
     </div>
   );
 

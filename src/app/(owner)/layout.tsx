@@ -2,12 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/queries";
 import { getMyOrganization } from "@/features/settings/queries";
+import { getEnabledModules, MODULE_COMPRAS } from "@/features/modules/queries";
 import { logout } from "@/features/auth/actions";
 import { NoOrganizationScreen } from "@/features/auth/components/no-organization-screen";
 import { SessionCheckIssueScreen } from "@/features/auth/components/session-check-issue-screen";
 import { OwnerNav } from "@/features/dashboard/components/owner-nav";
 import { MobileOwnerNav } from "@/features/dashboard/components/mobile-owner-nav";
 import { OrgBrand } from "@/features/dashboard/components/org-brand";
+import { CartProvider } from "@/features/cart/context";
+import { CartPanel } from "@/features/cart/components/cart-panel";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
@@ -24,9 +27,10 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
   if (!profile) return <NoOrganizationScreen email={user.email} />;
   if (profile.role !== "owner") redirect("/search");
 
-  const organization = await getMyOrganization();
+  const [organization, enabledModules] = await Promise.all([getMyOrganization(), getEnabledModules()]);
+  const comprasEnabled = enabledModules.has(MODULE_COMPRAS);
 
-  return (
+  const content = (
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* Header solo mobile/tablet (debajo de md): el aside de abajo esta
           oculto en ese rango, asi que sin esto el dueño no tiene forma de
@@ -62,6 +66,11 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
         </form>
       </aside>
       <main className="flex-1 p-4 md:p-8">{children}</main>
+      {comprasEnabled && <CartPanel />}
     </div>
   );
+
+  // El modulo "compras" (calculadora de venta) solo se monta si esta
+  // habilitado para esta organizacion (ver features/modules).
+  return comprasEnabled ? <CartProvider>{content}</CartProvider> : content;
 }
