@@ -22,13 +22,11 @@ export function CartPanel() {
   return (
     <>
       {/*
-        Nunca se desmonta -- se anima con opacidad, igual que el panel de
-        abajo. Montar/desmontar un "fixed inset-0" via {isOpen && ...} le
-        dejaba a Chrome Android una tile vieja en cache que reaparecia como
-        un velo oscuro fantasma al scrollear la lista de productos (bug de
-        compositor bastante conocido con overlays fixed que entran/salen del
-        DOM). Con opacity + pointer-events el elemento queda siempre
-        presente y el navegador nunca tiene que recomponer la capa de cero.
+        Nunca se desmonta (evita el bug de tile fantasma de montar/desmontar
+        un "fixed inset-0"), y sin transition: en la tablet Android sospechamos
+        que es justamente una propiedad animada -- transform u opacity -- en un
+        elemento fixed conviviendo con el scroll lo que corrompe la capa GPU.
+        El cambio de opacidad es instantaneo en vez de un fade.
       */}
       <button
         type="button"
@@ -36,18 +34,26 @@ export function CartPanel() {
         aria-label="Cerrar compras"
         tabIndex={isOpen ? 0 : -1}
         className={cn(
-          "fixed inset-0 z-20 bg-black/30 transition-opacity duration-200",
+          "fixed inset-0 z-20 bg-black/30",
           isOpen ? "opacity-100" : "pointer-events-none opacity-0"
         )}
       />
 
-      {/* Tab colapsado, siempre visible mientras el panel esta cerrado. */}
+      {/*
+        Tab colapsado, siempre visible mientras el panel esta cerrado.
+        Se desliza animando "right" en vez de "transform: translateX" --
+        un transform que cambia de valor via transition es justamente lo que
+        promueve/despromueve la capa GPU de forma dinamica, que es lo que
+        sospechamos causa el bug de corrupcion de tile en la tablet Android
+        (ver comentario del backdrop mas arriba). -100px es mas que
+        suficiente para sacarlo de la pantalla, sea cual sea el ancho.
+      */}
       <button
         type="button"
         onClick={() => setIsOpen(true)}
         className={cn(
-          "fixed right-0 top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-1 rounded-l-xl border border-r-0 border-primary bg-primary px-2.5 py-3 text-primary-foreground shadow-lg transition-transform",
-          isOpen && "pointer-events-none translate-x-full"
+          "fixed top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-1 rounded-l-xl border border-r-0 border-primary bg-primary px-2.5 py-3 text-primary-foreground shadow-lg transition-[right] duration-200",
+          isOpen ? "pointer-events-none right-[-100px]" : "right-0"
         )}
         aria-label="Ver compras"
       >
@@ -59,11 +65,16 @@ export function CartPanel() {
         )}
       </button>
 
-      {/* Panel deslizable. */}
+      {/*
+        Panel deslizable -- mismo motivo que el tab de arriba: "right" en vez
+        de "transform". El ancho real nunca supera 384px (w-full max-w-sm),
+        asi que -400px alcanza siempre para esconderlo del todo sin importar
+        el tamaño de pantalla.
+      */}
       <div
         className={cn(
-          "fixed inset-y-0 right-0 z-30 flex w-full max-w-sm flex-col border-l border-border bg-background shadow-2xl transition-transform duration-200",
-          isOpen ? "translate-x-0" : "translate-x-full"
+          "fixed inset-y-0 z-30 flex w-full max-w-sm flex-col border-l border-border bg-background shadow-2xl transition-[right] duration-200",
+          isOpen ? "right-0" : "right-[-400px]"
         )}
       >
         <div className="flex items-center justify-between border-b border-border p-4">
