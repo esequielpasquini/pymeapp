@@ -140,7 +140,6 @@ export function ReportForm({
               onBlur={() => setTimeout(() => setShowSuggestions(false), 150)}
               placeholder="Busca en el catalogo o escribi el nombre"
               required
-              autoFocus
               autoComplete="off"
               className="md:h-12 md:text-base"
             />

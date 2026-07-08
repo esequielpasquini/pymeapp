@@ -37,7 +37,7 @@ export function CategoryForm({
     <form action={formAction} className="space-y-4">
       <div className="space-y-2">
         <Label htmlFor="name">Nombre *</Label>
-        <Input id="name" name="name" defaultValue={category?.name ?? ""} required autoFocus />
+        <Input id="name" name="name" defaultValue={category?.name ?? ""} required />
       </div>
 
       <div className="space-y-2">
