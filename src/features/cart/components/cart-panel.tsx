@@ -1,82 +1,42 @@
 "use client";
 
-import { ShoppingCart, X, Minus, Plus, Trash2 } from "lucide-react";
+import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart } from "@/features/cart/context";
-import { formatCurrency, cn } from "@/lib/utils";
+import { formatCurrency } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
 /**
  * Reemplazo de la calculadora de mostrador (modulo "compras", ver
- * features/modules). Un tab fijo del lado derecho siempre visible con la
- * cantidad de items, que se despliega en un panel con el detalle y el
- * total -- pensado para que el empleado vaya sumando productos mientras
- * atiende a un cliente sin perder de vista la busqueda de atras.
+ * features/modules). Se abre desde CartHeaderButton (adentro del header,
+ * position: sticky) y muestra un panel con el detalle y el total.
+ *
+ * A proposito NO hay ningun tab flotante propio con position:fixed siempre
+ * presente en pantalla -- eso es lo que causaba corrupcion visual (tearing)
+ * al scrollear la lista de productos en tablets Android, confirmado
+ * deshabilitando el modulo (el problema desaparecia por completo). El
+ * backdrop y el panel siguen siendo fixed, pero solo se montan en el DOM
+ * mientras isOpen=true, asi que durante el scroll normal (que es cuando
+ * pasaba el problema) no hay ningun elemento fixed del carrito en pantalla.
  */
 export function CartPanel() {
   const cart = useCart();
   if (!cart) return null;
 
-  const { items, total, itemCount, isOpen, setIsOpen, updateQuantity, removeItem, clear } = cart;
+  const { items, total, isOpen, setIsOpen, updateQuantity, removeItem, clear } = cart;
+
+  if (!isOpen) return null;
 
   return (
     <>
-      {/*
-        Nunca se desmonta (evita el bug de tile fantasma de montar/desmontar
-        un "fixed inset-0"), y sin transition: en la tablet Android sospechamos
-        que es justamente una propiedad animada -- transform u opacity -- en un
-        elemento fixed conviviendo con el scroll lo que corrompe la capa GPU.
-        El cambio de opacidad es instantaneo en vez de un fade.
-      */}
       <button
         type="button"
         onClick={() => setIsOpen(false)}
         aria-label="Cerrar compras"
-        tabIndex={isOpen ? 0 : -1}
-        className={cn(
-          "fixed inset-0 z-20 bg-black/30",
-          isOpen ? "opacity-100" : "pointer-events-none opacity-0"
-        )}
+        className="fixed inset-0 z-20 bg-black/30"
       />
 
-      {/*
-        Tab colapsado, siempre visible mientras el panel esta cerrado.
-        Se desliza animando "right" en vez de "transform: translateX" --
-        un transform que cambia de valor via transition es justamente lo que
-        promueve/despromueve la capa GPU de forma dinamica, que es lo que
-        sospechamos causa el bug de corrupcion de tile en la tablet Android
-        (ver comentario del backdrop mas arriba). -100px es mas que
-        suficiente para sacarlo de la pantalla, sea cual sea el ancho.
-      */}
-      <button
-        type="button"
-        onClick={() => setIsOpen(true)}
-        className={cn(
-          "fixed top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-1 rounded-l-xl border border-r-0 border-primary bg-primary px-2.5 py-3 text-primary-foreground shadow-lg transition-[right] duration-200",
-          isOpen ? "pointer-events-none right-[-100px]" : "right-0"
-        )}
-        aria-label="Ver compras"
-      >
-        <ShoppingCart className="h-5 w-5" />
-        {itemCount > 0 && (
-          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-xs font-bold text-primary">
-            {itemCount}
-          </span>
-        )}
-      </button>
-
-      {/*
-        Panel deslizable -- mismo motivo que el tab de arriba: "right" en vez
-        de "transform". El ancho real nunca supera 384px (w-full max-w-sm),
-        asi que -400px alcanza siempre para esconderlo del todo sin importar
-        el tamaño de pantalla.
-      */}
-      <div
-        className={cn(
-          "fixed inset-y-0 z-30 flex w-full max-w-sm flex-col border-l border-border bg-background shadow-2xl transition-[right] duration-200",
-          isOpen ? "right-0" : "right-[-400px]"
-        )}
-      >
+      <div className="fixed inset-y-0 right-0 z-30 flex w-full max-w-sm flex-col border-l border-border bg-background shadow-2xl">
         <div className="flex items-center justify-between border-b border-border p-4">
           <h2 className="text-lg font-semibold">Compras</h2>
           <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} aria-label="Cerrar">

@@ -9,6 +9,7 @@ import { SessionCheckIssueScreen } from "@/features/auth/components/session-chec
 import { OrgBrand } from "@/features/dashboard/components/org-brand";
 import { CartProvider } from "@/features/cart/context";
 import { CartPanel } from "@/features/cart/components/cart-panel";
+import { CartHeaderButton } from "@/features/cart/components/cart-header-button";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
@@ -42,11 +43,14 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
             subtitle={profile.full_name}
           />
         </Link>
-        <form action={logout}>
-          <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Cerrar sesión">
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </form>
+        <div className="flex shrink-0 items-center gap-1">
+          {comprasEnabled && <CartHeaderButton />}
+          <form action={logout}>
+            <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Cerrar sesión">
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </form>
+        </div>
       </header>
       <main className="p-4 md:px-6 md:py-4">{children}</main>
       {comprasEnabled && <CartPanel />}

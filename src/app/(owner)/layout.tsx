@@ -11,6 +11,7 @@ import { MobileOwnerNav } from "@/features/dashboard/components/mobile-owner-nav
 import { OrgBrand } from "@/features/dashboard/components/org-brand";
 import { CartProvider } from "@/features/cart/context";
 import { CartPanel } from "@/features/cart/components/cart-panel";
+import { CartHeaderButton } from "@/features/cart/components/cart-header-button";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
@@ -44,18 +45,24 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
             subtitle={profile.full_name}
           />
         </Link>
-        <MobileOwnerNav onLogout={logout} />
+        <div className="flex shrink-0 items-center gap-1">
+          {comprasEnabled && <CartHeaderButton />}
+          <MobileOwnerNav onLogout={logout} />
+        </div>
       </header>
 
       <aside className="hidden w-60 shrink-0 border-r border-border bg-muted/20 p-4 md:flex md:flex-col md:justify-between">
         <div>
-          <Link href="/dashboard" className="mb-6 block px-2">
-            <OrgBrand
-              logoUrl={organization?.logo_url ?? null}
-              name={organization?.name ?? "Asistente de Precios"}
-              subtitle={profile.full_name}
-            />
-          </Link>
+          <div className="mb-6 flex items-center justify-between gap-2 px-2">
+            <Link href="/dashboard" className="min-w-0">
+              <OrgBrand
+                logoUrl={organization?.logo_url ?? null}
+                name={organization?.name ?? "Asistente de Precios"}
+                subtitle={profile.full_name}
+              />
+            </Link>
+            {comprasEnabled && <CartHeaderButton />}
+          </div>
           <OwnerNav />
         </div>
         <form action={logout}>
