@@ -1,6 +1,6 @@
 "use client";
 
-import { useCart, getApplicablePrice } from "@/features/cart/context";
+import { useCart, hasAnyPrice } from "@/features/cart/context";
 import type { Product } from "@/lib/supabase/types";
 
 /**
@@ -21,7 +21,7 @@ import type { Product } from "@/lib/supabase/types";
 export function AddToCartButton({ product }: { product: Product }) {
   const cart = useCart();
   if (!cart) return null;
-  if (!getApplicablePrice(product)) return null;
+  if (!hasAnyPrice(product)) return null;
 
   const { addItem, setIsOpen, items } = cart;
   const inCart = items.some((item) => item.productId === product.id);

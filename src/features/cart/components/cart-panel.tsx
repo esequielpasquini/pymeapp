@@ -1,8 +1,8 @@
 "use client";
 
 import { X, Minus, Plus, Trash2 } from "lucide-react";
-import { useCart } from "@/features/cart/context";
-import { formatCurrency } from "@/lib/utils";
+import { useCart, getItemPrice } from "@/features/cart/context";
+import { formatCurrency, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 
@@ -23,7 +23,7 @@ export function CartPanel() {
   const cart = useCart();
   if (!cart) return null;
 
-  const { items, total, isOpen, setIsOpen, updateQuantity, removeItem, clear } = cart;
+  const { items, total, isOpen, setIsOpen, updateQuantity, toggleFractioned, removeItem, clear } = cart;
 
   if (!isOpen) return null;
 
@@ -67,6 +67,22 @@ export function CartPanel() {
                       <Trash2 className="h-4 w-4" />
                     </button>
                   </div>
+
+                  {item.unitPrice !== null && item.kiloPrice !== null && (
+                    <button
+                      type="button"
+                      onClick={() => toggleFractioned(item.productId)}
+                      className={cn(
+                        "mt-1.5 rounded-full px-2.5 py-1 text-xs font-medium",
+                        item.fractioned
+                          ? "bg-red-600 text-white"
+                          : "border border-red-600 text-red-600"
+                      )}
+                    >
+                      Fraccionado
+                    </button>
+                  )}
+
                   <div className="mt-2 flex items-center justify-between gap-2">
                     <div className="flex items-center gap-1.5">
                       <Button
@@ -74,7 +90,9 @@ export function CartPanel() {
                         variant="outline"
                         size="icon"
                         className="h-8 w-8 shrink-0"
-                        onClick={() => updateQuantity(item.productId, item.quantity - 1)}
+                        onClick={() =>
+                          updateQuantity(item.productId, item.quantity - (item.fractioned ? 0.5 : 1))
+                        }
                         aria-label="Restar"
                       >
                         <Minus className="h-3.5 w-3.5" />
@@ -82,7 +100,7 @@ export function CartPanel() {
                       <Input
                         type="number"
                         value={item.quantity}
-                        step="1"
+                        step={item.fractioned ? "0.5" : "1"}
                         min="0"
                         onChange={(e) => updateQuantity(item.productId, Number(e.target.value) || 0)}
                         className="h-8 w-16 text-center"
@@ -92,14 +110,16 @@ export function CartPanel() {
                         variant="outline"
                         size="icon"
                         className="h-8 w-8 shrink-0"
-                        onClick={() => updateQuantity(item.productId, item.quantity + 1)}
+                        onClick={() =>
+                          updateQuantity(item.productId, item.quantity + (item.fractioned ? 0.5 : 1))
+                        }
                         aria-label="Sumar"
                       >
                         <Plus className="h-3.5 w-3.5" />
                       </Button>
                     </div>
                     <p className="shrink-0 text-sm font-semibold">
-                      {formatCurrency(item.unitPrice * item.quantity)}
+                      {formatCurrency(getItemPrice(item) * item.quantity)}
                     </p>
                   </div>
                 </div>
