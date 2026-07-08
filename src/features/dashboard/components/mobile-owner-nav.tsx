@@ -26,8 +26,8 @@ export function MobileOwnerNav({ onLogout }: { onLogout: () => void }) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="ghost" size="icon" className="h-11 w-11" aria-label="Abrir menu">
-          <Menu className="h-6 w-6" />
+        <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Abrir menu">
+          <Menu className="h-5 w-5" />
         </Button>
       </DialogTrigger>
       <DialogContent className="left-0 top-0 flex h-full w-72 max-w-[85vw] translate-x-0 translate-y-0 flex-col justify-between rounded-none border-r border-l-0 border-t-0 border-b-0 p-4">

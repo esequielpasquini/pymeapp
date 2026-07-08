@@ -31,9 +31,10 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
       {/* Header solo mobile/tablet (debajo de md): el aside de abajo esta
           oculto en ese rango, asi que sin esto el dueño no tiene forma de
           navegar entre pantallas desde el celular. */}
-      <header className="flex items-center justify-between border-b border-border p-4 md:hidden">
+      <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-2 md:hidden">
         <Link href="/dashboard" className="min-w-0">
           <OrgBrand
+            compact
             logoUrl={organization?.logo_url ?? null}
             name={organization?.name ?? "Asistente de Precios"}
             subtitle={profile.full_name}
