@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ImageIcon, ChevronDown, AlertCircle, Pencil, MoreHorizontal } from "lucide-react";
+import { ImageIcon, AlertCircle, Pencil, MoreHorizontal } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppShareButton } from "@/features/products/components/whatsapp-share-button";
@@ -15,14 +15,15 @@ function isStale(updatedAt: string): boolean {
 }
 
 /**
- * Tarjeta de resultado pensada para el buscador del empleado: grande, clara,
- * usable desde el celular en el mostrador. El precio va en un recuadro con
- * fondo propio (bg-primary/10) para que sea lo primero que salta a la vista
- * al mostrarle la pantalla a un cliente en el mostrador. Si el producto
- * tiene imagen, la tarjeta se puede clickear para expandirla -- el
- * contenedor de la imagen tiene un aspect-ratio fijo (con object-cover) para
- * que todas las tarjetas midan lo mismo sin importar el tamaño real de cada
- * foto.
+ * Fila de resultado (listado, no tiles): pensada para consultar un precio lo
+ * mas rapido posible -- una linea por producto, precio siempre a la vista a
+ * la derecha, sin tags ni badges que no aporten a esa tarea. Se usa dentro
+ * de un contenedor con divide-y (ver ProductSearchResults), no tiene borde
+ * propio.
+ *
+ * Editar y Reportar sin stock son ocasionales -- quedan atras del boton
+ * "...". Compartir (icono) y Agregar (modulo compras) quedan siempre
+ * visibles porque son las acciones que de verdad se usan seguido.
  */
 export function ProductResultCard({
   product,
@@ -30,13 +31,12 @@ export function ProductResultCard({
   isOwner = false,
 }: {
   product: Product;
-  /** Raiz de rutas para "reportar sin stock" y para los tags clickeables --
-   * este mismo componente se usa tanto en /search (empleado) como en
-   * /products (dueño), cada uno con sus propias sub-rutas. */
+  /** Raiz de rutas para "reportar sin stock" -- este mismo componente se usa
+   * tanto en /search (empleado) como en /products (dueño), cada uno con sus
+   * propias sub-rutas. */
   basePath?: string;
-  /** Solo /products lo pasa en true. Controla dos cosas que un empleado no
-   * deberia ver: el link de edicion (lapiz) hacia la ficha del producto, y
-   * el boton de compartir por WhatsApp. */
+  /** Solo /products lo pasa en true. Controla el link de edicion (lapiz) y
+   * el boton de compartir por WhatsApp, que un empleado no deberia ver. */
   isOwner?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
@@ -45,144 +45,112 @@ export function ProductResultCard({
   const hasPrice = product.price_per_kilo !== null || product.unit_price !== null;
   const hasImage = Boolean(product.image_url);
 
-  const priceBox = (
-    <div className="shrink-0 rounded-lg border border-primary/20 bg-primary/10 px-3 py-2 text-right">
+  const thumbnail = hasImage && (
+    <button
+      type="button"
+      onClick={() => setExpanded((v) => !v)}
+      aria-label={expanded ? "Ocultar foto" : "Ver foto"}
+      className="h-11 w-11 shrink-0 overflow-hidden rounded-md bg-muted/30 md:h-12 md:w-12"
+    >
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src={product.image_url ?? ""} alt={product.description} className="h-full w-full object-cover" />
+    </button>
+  );
+
+  const priceChip = (
+    <div className="shrink-0 rounded-md border border-primary/20 bg-primary/10 px-2.5 py-1 text-right">
       {product.unit_price !== null && (
-        <p className="text-lg font-bold text-primary md:text-2xl">{formatCurrency(product.unit_price)}</p>
+        <p className="text-base font-bold leading-tight text-primary md:text-lg">
+          {formatCurrency(product.unit_price)}
+        </p>
       )}
       {product.price_per_kilo !== null && (
-        <p className="text-sm font-medium text-primary/80 md:text-base">
+        <p className="text-xs font-medium leading-tight text-primary/80">
           {formatCurrency(product.price_per_kilo)} / kg
         </p>
       )}
       {!hasPrice && (
-        <Badge variant="warning" className="md:px-3 md:py-1 md:text-sm">
+        <Badge variant="warning" className="text-xs">
           Sin precio
         </Badge>
       )}
-      {stale && hasPrice && (
-        <p className="mt-0.5 text-[10px] font-medium text-amber-600 md:text-xs">Desactualizado</p>
-      )}
+      {stale && hasPrice && <p className="mt-0.5 text-[10px] font-medium text-amber-600">Desactualizado</p>}
     </div>
   );
-
-  const header = (
-    <div className="flex items-start justify-between gap-3">
-      <div className="min-w-0 flex-1">
-        <p className="flex items-center gap-1.5 break-words font-medium leading-snug md:text-lg">
-          {hasImage && <ImageIcon className="h-4 w-4 shrink-0 text-muted-foreground" />}
-          {product.brand ? `${product.brand} — ` : ""}
-          {product.description}
-        </p>
-        {product.supplier?.name && (
-          <p className="text-xs text-muted-foreground md:text-sm">{product.supplier.name}</p>
-        )}
-      </div>
-      <div className="flex shrink-0 items-start gap-2">
-        {priceBox}
-        {hasImage && (
-          <ChevronDown
-            className={`mt-1 h-4 w-4 shrink-0 text-muted-foreground transition-transform ${
-              expanded ? "rotate-180" : ""
-            }`}
-          />
-        )}
-      </div>
-    </div>
-  );
-
-  const tagPills = product.tags.length > 0 && (
-    <div className="mt-2 flex flex-wrap gap-1.5">
-      {product.tags.map((tag) => (
-        <Link
-          key={tag}
-          href={`${basePath}?tag=${encodeURIComponent(tag)}`}
-          className="rounded-full bg-muted px-2.5 py-0.5 text-xs text-muted-foreground transition-colors hover:bg-muted/70 hover:text-foreground md:text-sm"
-        >
-          #{tag}
-        </Link>
-      ))}
-    </div>
-  );
-
-  // Editar y Reportar sin stock son acciones ocasionales (no algo que un
-  // empleado necesite en cada busqueda), asi que quedan atras del toggle
-  // "..." en vez de ocupar espacio fijo en cada card -- la prioridad es que
-  // entren mas resultados en pantalla sin scrollear.
-  const actions = (
-    <div className="mt-2 flex items-center gap-2 border-t border-border pt-2">
-      <button
-        type="button"
-        onClick={() => setShowMore((v) => !v)}
-        aria-label="Más acciones"
-        aria-expanded={showMore}
-        className={cn(
-          "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
-          showMore && "bg-muted text-foreground"
-        )}
-      >
-        <MoreHorizontal className="h-4 w-4" />
-      </button>
-      {isOwner && <WhatsAppShareButton product={product} />}
-      <AddToCartButton product={product} />
-    </div>
-  );
-
-  const moreActions = showMore && (
-    <div className="mt-1.5 flex flex-wrap items-center gap-4 border-t border-dashed border-border pt-1.5">
-      {isOwner && (
-        <Link
-          href={`/products/${product.id}`}
-          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground md:text-sm"
-        >
-          <Pencil className="h-3.5 w-3.5" />
-          Editar
-        </Link>
-      )}
-      <Link
-        href={`${basePath}/report?productId=${product.id}`}
-        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground md:text-sm"
-      >
-        <AlertCircle className="h-3.5 w-3.5" />
-        Reportar sin stock
-      </Link>
-    </div>
-  );
-
-  if (!hasImage) {
-    return (
-      <div className="rounded-lg border border-border p-3 transition-colors hover:border-primary/40 hover:bg-muted/70 md:p-4">
-        {header}
-        {tagPills}
-        {actions}
-        {moreActions}
-      </div>
-    );
-  }
 
   return (
-    <div className="rounded-lg border border-border p-3 transition-colors hover:border-primary/40 hover:bg-muted/70 md:p-4">
-      <button
-        type="button"
-        onClick={() => setExpanded((v) => !v)}
-        className="w-full text-left"
-        aria-expanded={expanded}
-      >
-        {header}
-      </button>
-      {tagPills}
-      {expanded && (
-        <div className="mt-3 aspect-[4/3] w-full overflow-hidden rounded-md bg-muted/30">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src={product.image_url ?? ""}
-            alt={product.description}
-            className="h-full w-full object-cover"
-          />
+    <div className="transition-colors hover:bg-muted/50">
+      <div className="flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3">
+        {!hasImage && (
+          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-muted/30 text-muted-foreground md:h-12 md:w-12">
+            <ImageIcon className="h-4 w-4" />
+          </div>
+        )}
+        {thumbnail}
+
+        <div className="min-w-0 flex-1">
+          <p className="truncate font-medium leading-snug md:text-lg">
+            {product.brand ? `${product.brand} — ` : ""}
+            {product.description}
+          </p>
+          {product.supplier?.name && (
+            <p className="truncate text-xs text-muted-foreground md:text-sm">{product.supplier.name}</p>
+          )}
+        </div>
+
+        {priceChip}
+
+        <div className="flex shrink-0 items-center gap-1">
+          {isOwner && <WhatsAppShareButton product={product} />}
+          <AddToCartButton product={product} />
+          <button
+            type="button"
+            onClick={() => setShowMore((v) => !v)}
+            aria-label="Más acciones"
+            aria-expanded={showMore}
+            className={cn(
+              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
+              showMore && "bg-muted text-foreground"
+            )}
+          >
+            <MoreHorizontal className="h-4 w-4" />
+          </button>
+        </div>
+      </div>
+
+      {expanded && hasImage && (
+        <div className="px-3 pb-3 md:px-4">
+          <div className="aspect-[4/3] w-full max-w-xs overflow-hidden rounded-md bg-muted/30">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={product.image_url ?? ""}
+              alt={product.description}
+              className="h-full w-full object-cover"
+            />
+          </div>
         </div>
       )}
-      {actions}
-      {moreActions}
+
+      {showMore && (
+        <div className="flex flex-wrap items-center gap-4 border-t border-dashed border-border px-3 py-2 text-xs md:px-4 md:text-sm">
+          {isOwner && (
+            <Link
+              href={`/products/${product.id}`}
+              className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
+            >
+              <Pencil className="h-3.5 w-3.5" />
+              Editar
+            </Link>
+          )}
+          <Link
+            href={`${basePath}/report?productId=${product.id}`}
+            className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
+          >
+            <AlertCircle className="h-3.5 w-3.5" />
+            Reportar sin stock
+          </Link>
+        </div>
+      )}
     </div>
   );
 }

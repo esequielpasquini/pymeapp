@@ -46,7 +46,7 @@ export function ProductSearchResults({
         </div>
       )}
 
-      <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+      <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
         {products.map((product) => (
           <ProductResultCard key={product.id} product={product} basePath={basePath} isOwner={isOwner} />
         ))}
