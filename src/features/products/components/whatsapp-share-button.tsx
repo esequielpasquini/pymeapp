@@ -45,10 +45,10 @@ export function WhatsAppShareButton({ product }: { product: Product }) {
     <button
       type="button"
       onClick={handleShare}
-      className="inline-flex items-center gap-1 text-xs text-green-700 hover:text-green-800 md:text-sm"
+      aria-label="Compartir por WhatsApp"
+      className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-green-700 hover:bg-green-50 hover:text-green-800"
     >
-      <WhatsAppIcon className="h-3.5 w-3.5" />
-      Compartir
+      <WhatsAppIcon className="h-4 w-4" />
     </button>
   );
 }

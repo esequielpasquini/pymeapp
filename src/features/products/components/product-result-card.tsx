@@ -2,8 +2,8 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ImageIcon, ChevronDown, AlertCircle, Pencil } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { ImageIcon, ChevronDown, AlertCircle, Pencil, MoreHorizontal } from "lucide-react";
+import { formatCurrency, cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppShareButton } from "@/features/products/components/whatsapp-share-button";
 import { AddToCartButton } from "@/features/cart/components/add-to-cart-button";
@@ -40,6 +40,7 @@ export function ProductResultCard({
   isOwner?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const [showMore, setShowMore] = useState(false);
   const stale = isStale(product.updated_at);
   const hasPrice = product.price_per_kilo !== null || product.unit_price !== null;
   const hasImage = Boolean(product.image_url);
@@ -58,6 +59,9 @@ export function ProductResultCard({
         <Badge variant="warning" className="md:px-3 md:py-1 md:text-sm">
           Sin precio
         </Badge>
+      )}
+      {stale && hasPrice && (
+        <p className="mt-0.5 text-[10px] font-medium text-amber-600 md:text-xs">Desactualizado</p>
       )}
     </div>
   );
@@ -87,21 +91,6 @@ export function ProductResultCard({
     </div>
   );
 
-  const badges = (
-    <div className="mt-2 flex items-center gap-2">
-      {stale && hasPrice && (
-        <Badge variant="warning" className="md:px-3 md:py-1 md:text-sm">
-          Puede estar desactualizado
-        </Badge>
-      )}
-      {!stale && hasPrice && (
-        <Badge variant="success" className="md:px-3 md:py-1 md:text-sm">
-          Actualizado
-        </Badge>
-      )}
-    </div>
-  );
-
   const tagPills = product.tags.length > 0 && (
     <div className="mt-2 flex flex-wrap gap-1.5">
       {product.tags.map((tag) => (
@@ -116,8 +105,31 @@ export function ProductResultCard({
     </div>
   );
 
+  // Editar y Reportar sin stock son acciones ocasionales (no algo que un
+  // empleado necesite en cada busqueda), asi que quedan atras del toggle
+  // "..." en vez de ocupar espacio fijo en cada card -- la prioridad es que
+  // entren mas resultados en pantalla sin scrollear.
   const actions = (
-    <div className="mt-3 flex items-center gap-4 border-t border-border pt-3">
+    <div className="mt-2 flex items-center gap-2 border-t border-border pt-2">
+      <button
+        type="button"
+        onClick={() => setShowMore((v) => !v)}
+        aria-label="Más acciones"
+        aria-expanded={showMore}
+        className={cn(
+          "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
+          showMore && "bg-muted text-foreground"
+        )}
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </button>
+      {isOwner && <WhatsAppShareButton product={product} />}
+      <AddToCartButton product={product} />
+    </div>
+  );
+
+  const moreActions = showMore && (
+    <div className="mt-1.5 flex flex-wrap items-center gap-4 border-t border-dashed border-border pt-1.5">
       {isOwner && (
         <Link
           href={`/products/${product.id}`}
@@ -134,24 +146,22 @@ export function ProductResultCard({
         <AlertCircle className="h-3.5 w-3.5" />
         Reportar sin stock
       </Link>
-      {isOwner && <WhatsAppShareButton product={product} />}
-      <AddToCartButton product={product} />
     </div>
   );
 
   if (!hasImage) {
     return (
-      <div className="rounded-lg border border-border p-4 transition-colors hover:border-primary/40 hover:bg-muted/70 md:p-5">
+      <div className="rounded-lg border border-border p-3 transition-colors hover:border-primary/40 hover:bg-muted/70 md:p-4">
         {header}
-        {badges}
         {tagPills}
         {actions}
+        {moreActions}
       </div>
     );
   }
 
   return (
-    <div className="rounded-lg border border-border p-4 transition-colors hover:border-primary/40 hover:bg-muted/70 md:p-5">
+    <div className="rounded-lg border border-border p-3 transition-colors hover:border-primary/40 hover:bg-muted/70 md:p-4">
       <button
         type="button"
         onClick={() => setExpanded((v) => !v)}
@@ -160,7 +170,6 @@ export function ProductResultCard({
       >
         {header}
       </button>
-      {badges}
       {tagPills}
       {expanded && (
         <div className="mt-3 aspect-[4/3] w-full overflow-hidden rounded-md bg-muted/30">
@@ -173,6 +182,7 @@ export function ProductResultCard({
         </div>
       )}
       {actions}
+      {moreActions}
     </div>
   );
 }
