@@ -11,6 +11,7 @@ import {
   Upload,
   Percent,
   AlertCircle,
+  Printer,
   Settings,
 } from "lucide-react";
 
@@ -22,6 +23,7 @@ export const OWNER_NAV_LINKS = [
   { href: "/imports", label: "Importar Excel", icon: Upload },
   { href: "/price-adjustments", label: "Ajuste de precios", icon: Percent },
   { href: "/missing-products", label: "Faltantes", icon: AlertCircle },
+  { href: "/reports", label: "Reportes", icon: Printer },
   { href: "/settings", label: "Configuracion", icon: Settings },
 ];
 

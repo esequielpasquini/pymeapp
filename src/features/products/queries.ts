@@ -253,4 +253,44 @@ export async function listTagsWithCounts(): Promise<TagCount[]> {
     .sort((a, b) => a.tag.localeCompare(b.tag));
 }
 
+export type ReportProduct = {
+  id: string;
+  brand: string | null;
+  description: string;
+  unit_price: number | null;
+  price_per_kilo: number | null;
+};
+
+/**
+ * Lista completa (sin paginar) de productos activos para el listado de
+ * precios imprimible de /reports -- a diferencia de searchProducts esto no
+ * corta en PAGE_SIZE, porque el reporte tiene que mostrar todo lo que matchee
+ * el filtro de una. El orden final por marca/descripcion se termina de
+ * resolver en la vista (agrupando en memoria, ver ReportsPage) porque la
+ * marca es texto libre y dos productos pueden tener la misma marca con
+ * distinta capitalizacion.
+ */
+export async function listProductsForReport(params: {
+  categoryId?: string;
+  brand?: string;
+}): Promise<ReportProduct[]> {
+  const supabase = await createClient();
+  let q = supabase
+    .from("products")
+    .select("id, brand, description, unit_price, price_per_kilo")
+    .eq("is_active", true)
+    .order("description", { ascending: true });
+
+  if (params.categoryId) {
+    q = q.eq("category_id", params.categoryId);
+  }
+  if (params.brand) {
+    q = q.ilike("brand", params.brand);
+  }
+
+  const { data, error } = await q;
+  if (error) throw error;
+  return (data ?? []) as ReportProduct[];
+}
+
 export { listSuppliers } from "@/features/suppliers/queries";

@@ -1,7 +1,9 @@
 "use client";
 
+import { useState, useTransition } from "react";
 import { X, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart, getItemPrice } from "@/features/cart/context";
+import { confirmSale } from "@/features/cart/actions";
 import { formatCurrency, cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -21,11 +23,36 @@ import { Input } from "@/components/ui/input";
  */
 export function CartPanel() {
   const cart = useCart();
+  const [isConfirming, startConfirm] = useTransition();
+  const [confirmError, setConfirmError] = useState<string | null>(null);
+
   if (!cart) return null;
 
   const { items, total, isOpen, setIsOpen, updateQuantity, toggleFractioned, removeItem, clear } = cart;
 
   if (!isOpen) return null;
+
+  function handleConfirm() {
+    setConfirmError(null);
+    startConfirm(async () => {
+      const result = await confirmSale(
+        items.map((item) => ({
+          productId: item.productId,
+          description: item.description,
+          brand: item.brand,
+          unitPrice: getItemPrice(item),
+          fractioned: item.fractioned,
+          quantity: item.quantity,
+        }))
+      );
+      if (result.error) {
+        setConfirmError(result.error);
+      } else {
+        clear();
+        setIsOpen(false);
+      }
+    });
+  }
 
   return (
     <>
@@ -134,9 +161,21 @@ export function CartPanel() {
               <span className="font-medium">Total</span>
               <span className="text-2xl font-bold text-primary">{formatCurrency(total)}</span>
             </div>
-            <Button type="button" variant="outline" onClick={clear} className="w-full text-muted-foreground">
-              Vaciar
-            </Button>
+            {confirmError && <p className="text-sm text-destructive">{confirmError}</p>}
+            <div className="flex gap-2">
+              <Button type="button" onClick={handleConfirm} disabled={isConfirming} className="flex-1">
+                {isConfirming ? "Guardando..." : "Confirmar"}
+              </Button>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={clear}
+                disabled={isConfirming}
+                className="text-muted-foreground"
+              >
+                Vaciar
+              </Button>
+            </div>
           </div>
         )}
       </div>
