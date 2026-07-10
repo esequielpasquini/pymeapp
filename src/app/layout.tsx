@@ -1,19 +1,5 @@
 import type { Metadata, Viewport } from "next";
-import { Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
-
-// Reemplaza la tipografia de sistema por defecto: mejor legibilidad de
-// numeros (precios) y una descripcion de producto con mas caracter que el
-// font-sans generico del navegador, sin perder velocidad de lectura en la
-// tablet del mostrador. Se expone como variable CSS y se enchufa como
-// font-sans por defecto en tailwind.config.ts, asi que aplica a toda la app,
-// no solo al listado de productos.
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
-  variable: "--font-sans",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   title: "Asistente de Precios",
@@ -45,8 +31,8 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="es" className={plusJakartaSans.variable}>
-      <body className="min-h-screen font-sans antialiased">{children}</body>
+    <html lang="es">
+      <body className="min-h-screen antialiased">{children}</body>
     </html>
   );
 }
