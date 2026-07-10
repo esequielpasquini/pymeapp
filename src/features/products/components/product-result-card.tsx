@@ -91,9 +91,6 @@ export function ProductResultCard({
             {product.brand ? `${product.brand} — ` : ""}
             {product.description}
           </p>
-          {product.supplier?.name && (
-            <p className="truncate text-xs text-muted-foreground md:text-sm">{product.supplier.name}</p>
-          )}
         </div>
 
         {priceChip}

@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { X, Minus, Plus, Trash2 } from "lucide-react";
+import { ShoppingCart, X, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart, getItemPrice } from "@/features/cart/context";
 import { confirmSale } from "@/features/cart/actions";
 import { formatCurrency, cn } from "@/lib/utils";
@@ -10,16 +10,14 @@ import { Input } from "@/components/ui/input";
 
 /**
  * Reemplazo de la calculadora de mostrador (modulo "compras", ver
- * features/modules). Se abre desde CartHeaderButton (adentro del header,
- * position: sticky) y muestra un panel con el detalle y el total.
+ * features/modules). Tab lateral flotante siempre visible (colapsado) que
+ * se despliega en un panel con el detalle y el total.
  *
- * A proposito NO hay ningun tab flotante propio con position:fixed siempre
- * presente en pantalla -- eso es lo que causaba corrupcion visual (tearing)
- * al scrollear la lista de productos en tablets Android, confirmado
- * deshabilitando el modulo (el problema desaparecia por completo). El
- * backdrop y el panel siguen siendo fixed, pero solo se montan en el DOM
- * mientras isOpen=true, asi que durante el scroll normal (que es cuando
- * pasaba el problema) no hay ningun elemento fixed del carrito en pantalla.
+ * El bug de corrupcion visual (tearing) en tablet Android que hizo sacar
+ * este tab en una version anterior en realidad NO era por el tab -- se
+ * confirmo despues (sacandolo y el problema seguia) que la causa real era
+ * un icono en AddToCartButton repetido en cada fila de la lista de
+ * resultados. Con ese boton sin icono, el tab flotante es seguro.
  */
 export function CartPanel() {
   const cart = useCart();
@@ -28,9 +26,8 @@ export function CartPanel() {
 
   if (!cart) return null;
 
-  const { items, total, isOpen, setIsOpen, updateQuantity, toggleFractioned, removeItem, clear } = cart;
-
-  if (!isOpen) return null;
+  const { items, total, itemCount, isOpen, setIsOpen, updateQuantity, toggleFractioned, removeItem, clear } =
+    cart;
 
   function handleConfirm() {
     setConfirmError(null);
@@ -56,14 +53,37 @@ export function CartPanel() {
 
   return (
     <>
+      {/* Tab colapsado, siempre montado (a diferencia del backdrop/panel de
+          abajo, que solo existen mientras isOpen). Anima "right" en vez de
+          "transform: translateX" -- no hacia falta para el bug real, pero
+          ya estaba probado y funciona bien. */}
       <button
         type="button"
-        onClick={() => setIsOpen(false)}
-        aria-label="Cerrar compras"
-        className="fixed inset-0 z-20 bg-black/30"
-      />
+        onClick={() => setIsOpen(true)}
+        className={cn(
+          "fixed top-1/2 z-20 flex -translate-y-1/2 flex-col items-center gap-1 rounded-l-xl border border-r-0 border-primary bg-primary px-2.5 py-3 text-primary-foreground shadow-lg transition-[right] duration-200",
+          isOpen ? "pointer-events-none right-[-100px]" : "right-0"
+        )}
+        aria-label="Ver compras"
+      >
+        <ShoppingCart className="h-5 w-5" />
+        {itemCount > 0 && (
+          <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-white px-1 text-xs font-bold text-primary">
+            {itemCount}
+          </span>
+        )}
+      </button>
 
-      <div className="fixed inset-y-0 right-0 z-30 flex w-full max-w-sm flex-col border-l border-border bg-background shadow-2xl">
+      {isOpen && (
+        <>
+          <button
+            type="button"
+            onClick={() => setIsOpen(false)}
+            aria-label="Cerrar compras"
+            className="fixed inset-0 z-20 bg-black/30"
+          />
+
+          <div className="fixed inset-y-0 right-0 z-30 flex w-full max-w-sm flex-col border-l border-border bg-background shadow-2xl">
         <div className="flex items-center justify-between border-b border-border p-4">
           <h2 className="text-lg font-semibold">Compras</h2>
           <Button variant="ghost" size="icon" onClick={() => setIsOpen(false)} aria-label="Cerrar">
@@ -178,7 +198,9 @@ export function CartPanel() {
             </div>
           </div>
         )}
-      </div>
+          </div>
+        </>
+      )}
     </>
   );
 }
