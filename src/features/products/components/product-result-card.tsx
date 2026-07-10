@@ -91,16 +91,16 @@ export function ProductResultCard({
           {product.brand ? (
             <span
               className={cn(
-                "w-20 shrink-0 truncate rounded-full border px-2 py-0.5 text-center text-[11px] font-semibold md:w-32 md:text-xs",
+                "w-20 shrink-0 truncate rounded-full border px-2 py-0.5 text-center text-xs font-semibold md:w-32 md:text-sm",
                 getBrandColorClasses(product.brand)
               )}
             >
               {product.brand}
             </span>
           ) : (
-            <span className="w-20 shrink-0 text-center text-[11px] text-muted-foreground md:w-32 md:text-xs">—</span>
+            <span className="w-20 shrink-0 text-center text-xs text-muted-foreground md:w-32 md:text-sm">—</span>
           )}
-          <span className="min-w-0 flex-1 truncate font-medium leading-snug text-foreground md:text-lg">
+          <span className="min-w-0 flex-1 truncate font-medium leading-snug text-foreground text-sm md:text-base">
             {product.description}
           </span>
         </div>
