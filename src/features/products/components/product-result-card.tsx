@@ -86,11 +86,13 @@ export function ProductResultCard({
         )}
         {thumbnail}
 
-        <div className="min-w-0 flex-1">
-          <p className="truncate font-medium leading-snug md:text-lg">
-            {product.brand ? `${product.brand} — ` : ""}
+        <div className="flex min-w-0 flex-1 items-baseline gap-3">
+          <span className="w-24 shrink-0 truncate text-sm font-semibold text-muted-foreground md:w-36 md:text-base">
+            {product.brand || "—"}
+          </span>
+          <span className="min-w-0 flex-1 truncate font-medium leading-snug md:text-lg">
             {product.description}
-          </p>
+          </span>
         </div>
 
         {priceChip}
