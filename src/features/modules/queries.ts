@@ -10,6 +10,7 @@ import { createClient } from "@/lib/supabase/server";
  * con getEnabledModules().
  */
 export const MODULE_COMPRAS = "compras";
+export const MODULE_PEDIDOS = "pedidos";
 
 /**
  * Modulos habilitados para la organizacion del usuario logueado. RLS

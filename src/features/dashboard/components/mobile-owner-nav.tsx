@@ -12,7 +12,13 @@ import { OwnerNav } from "@/features/dashboard/components/owner-nav";
  * del dueño esta oculto. Reusa la misma lista de links que el aside de
  * escritorio (OwnerNav) dentro de un drawer que sale desde la izquierda.
  */
-export function MobileOwnerNav({ onLogout }: { onLogout: () => void }) {
+export function MobileOwnerNav({
+  onLogout,
+  pedidosEnabled,
+}: {
+  onLogout: () => void;
+  pedidosEnabled: boolean;
+}) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
 
@@ -33,7 +39,11 @@ export function MobileOwnerNav({ onLogout }: { onLogout: () => void }) {
       <DialogContent className="left-0 top-0 flex h-full w-72 max-w-[85vw] translate-x-0 translate-y-0 flex-col justify-between rounded-none border-r border-l-0 border-t-0 border-b-0 p-4">
         <div>
           <DialogTitle className="mb-4 px-2 text-sm font-semibold">Menu</DialogTitle>
-          <OwnerNav onNavigate={() => setOpen(false)} linkClassName="text-base py-3" />
+          <OwnerNav
+            onNavigate={() => setOpen(false)}
+            linkClassName="text-base py-3"
+            pedidosEnabled={pedidosEnabled}
+          />
         </div>
         <form action={onLogout}>
           <Button

@@ -1,4 +1,5 @@
 import type { Config } from "tailwindcss";
+import defaultTheme from "tailwindcss/defaultTheme";
 
 const config: Config = {
   darkMode: "class",
@@ -9,6 +10,13 @@ const config: Config = {
   ],
   theme: {
     extend: {
+      fontFamily: {
+        // --font-sans la carga next/font/google en layout.tsx (Plus Jakarta
+        // Sans); el fallback de Tailwind queda como red de seguridad si por
+        // algun motivo la variable no esta disponible (SSR muy temprano,
+        // etc).
+        sans: ["var(--font-sans)", ...defaultTheme.fontFamily.sans],
+      },
       colors: {
         border: "hsl(var(--border))",
         background: "hsl(var(--background))",

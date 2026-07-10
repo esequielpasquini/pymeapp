@@ -294,4 +294,29 @@ export async function listProductsForReport(params: {
   return (data ?? []) as ReportProduct[];
 }
 
+export type OrderableProduct = {
+  id: string;
+  brand: string | null;
+  description: string;
+};
+
+/**
+ * Productos activos de un proveedor puntual, para armar un pedido (modulo
+ * "pedidos"): solo lo minimo que necesita el formulario (id/marca/descripcion,
+ * sin precio -- un pedido es de cantidades, no de precios). Ordenado por
+ * descripcion, misma logica que listProductsForReport.
+ */
+export async function listProductsBySupplier(supplierId: string): Promise<OrderableProduct[]> {
+  const supabase = await createClient();
+  const { data, error } = await supabase
+    .from("products")
+    .select("id, brand, description")
+    .eq("supplier_id", supplierId)
+    .eq("is_active", true)
+    .order("description", { ascending: true });
+
+  if (error) throw error;
+  return (data ?? []) as OrderableProduct[];
+}
+
 export { listSuppliers } from "@/features/suppliers/queries";
