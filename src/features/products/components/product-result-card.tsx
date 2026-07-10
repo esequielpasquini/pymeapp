@@ -4,6 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AlertCircle, Pencil, MoreHorizontal } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
+import { getBrandColorClasses } from "@/lib/brand-colors";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppShareButton } from "@/features/products/components/whatsapp-share-button";
 import { AddToCartButton } from "@/features/cart/components/add-to-cart-button";
@@ -87,10 +88,19 @@ export function ProductResultCard({
         {thumbnail}
 
         <div className="flex min-w-0 flex-1 items-center gap-3">
-          <span className="w-20 shrink-0 truncate font-medium leading-snug text-foreground md:w-32 md:text-lg">
-            {product.brand || "—"}
-          </span>
-          <span className="min-w-0 flex-1 truncate text-xs font-semibold uppercase tracking-wide text-muted-foreground md:text-sm">
+          {product.brand ? (
+            <span
+              className={cn(
+                "w-20 shrink-0 truncate rounded-full border px-2 py-0.5 text-center text-[11px] font-semibold md:w-32 md:text-xs",
+                getBrandColorClasses(product.brand)
+              )}
+            >
+              {product.brand}
+            </span>
+          ) : (
+            <span className="w-20 shrink-0 text-center text-[11px] text-muted-foreground md:w-32 md:text-xs">—</span>
+          )}
+          <span className="min-w-0 flex-1 truncate font-medium leading-snug text-foreground md:text-lg">
             {product.description}
           </span>
         </div>
