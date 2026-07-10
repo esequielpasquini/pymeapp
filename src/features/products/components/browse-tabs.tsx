@@ -1,13 +1,14 @@
 import Link from "next/link";
-import { LayoutGrid, Tag, Truck, Hash, type LucideIcon } from "lucide-react";
+import { LayoutGrid, Tag, Hash, type LucideIcon } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { buildFilterHref, type BrowseDimension, type ProductFilters } from "@/features/products/filters";
 
 /**
- * Tabs para elegir por que dimension seguir filtrando: categoria, marca,
- * proveedor o tag. Tocar un tab ABRE el selector de tiles de esa dimension
- * SIN pisar los filtros ya aplicados (ver buildFilterHref) -- se puede
- * categoria + marca + proveedor + tag al mismo tiempo. Se marca como activo
+ * Tabs para elegir por que dimension seguir filtrando: categoria, marca o
+ * tag (el filtro fijo de proveedor se saco de la UI a pedido, pero
+ * ProductFilters/buildFilterHref lo siguen soportando por si se necesita
+ * mas adelante). Tocar un tab ABRE el selector de esa dimension SIN pisar
+ * los filtros ya aplicados (ver buildFilterHref). Se marca como activo
  * tanto el tab que se esta explorando ahora (`browse`) como cualquier
  * dimension que ya tenga un filtro puesto, para que quede claro que esta
  * afectando el resultado.
@@ -22,8 +23,7 @@ export function BrowseTabs({
   const tabs: { key: BrowseDimension; label: string; icon: LucideIcon }[] = [
     { key: "category", label: "Categoria", icon: LayoutGrid },
     { key: "brand", label: "Marca", icon: Tag },
-    { key: "supplier", label: "Proveedor", icon: Truck },
-    { key: "tag", label: "Tags", icon: Hash },
+    { key: "tag", label: "Etiquetas", icon: Hash },
   ];
 
   return (

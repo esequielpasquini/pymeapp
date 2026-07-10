@@ -86,11 +86,11 @@ export function ProductResultCard({
         )}
         {thumbnail}
 
-        <div className="flex min-w-0 flex-1 items-baseline gap-3">
-          <span className="w-24 shrink-0 truncate text-sm font-semibold text-muted-foreground md:w-36 md:text-base">
+        <div className="flex min-w-0 flex-1 items-center gap-3">
+          <span className="w-20 shrink-0 truncate text-[11px] font-semibold uppercase tracking-wide text-muted-foreground md:w-32 md:text-xs">
             {product.brand || "—"}
           </span>
-          <span className="min-w-0 flex-1 truncate font-medium leading-snug md:text-lg">
+          <span className="min-w-0 flex-1 truncate font-medium leading-snug text-foreground md:text-lg">
             {product.description}
           </span>
         </div>

@@ -1,13 +1,13 @@
 import Link from "next/link";
-import { AlertCircle, X, Tag as TagIcon, Truck, Hash } from "lucide-react";
+import { AlertCircle, X } from "lucide-react";
 import { searchProducts, getMostSearchedProducts, listBrandsWithCounts, listTagsWithCounts } from "@/features/products/queries";
 import { listCategoriesWithCounts, getCategory } from "@/features/categories/queries";
-import { listSuppliersWithCounts, getSupplier } from "@/features/suppliers/queries";
+import { getSupplier } from "@/features/suppliers/queries";
 import { SearchBox } from "@/features/products/components/search-box";
 import { ProductSearchResults } from "@/features/products/components/product-search-results";
 import { CategoryGrid } from "@/features/products/components/category-grid";
 import { BrowseTabs } from "@/features/products/components/browse-tabs";
-import { SimpleTileGrid } from "@/features/products/components/simple-tile-grid";
+import { SimpleFilterRows } from "@/features/products/components/simple-filter-rows";
 import { MostSearchedRow } from "@/features/products/components/most-searched-row";
 import { Button } from "@/components/ui/button";
 import {
@@ -80,39 +80,31 @@ export async function SearchHomeView({
     } else if (effectiveBrowse === "brand") {
       const brands = await listBrandsWithCounts();
       pickerOrResults = (
-        <SimpleTileGrid
+        <SimpleFilterRows
           items={brands.map((b) => ({ id: b.brand, name: b.brand, count: b.count }))}
           basePath={basePath}
           filters={filters}
           filterKey="brand"
-          icon={TagIcon}
           emptyLabel="Todavia no hay productos con marca cargada."
         />
       );
-    } else if (effectiveBrowse === "supplier") {
-      const suppliers = await listSuppliersWithCounts();
-      pickerOrResults = (
-        <SimpleTileGrid
-          items={suppliers.map((s) => ({ id: s.id, name: s.name, count: s.product_count ?? 0 }))}
-          basePath={basePath}
-          filters={filters}
-          filterKey="supplier"
-          icon={Truck}
-          emptyLabel="Todavia no hay proveedores cargados."
-        />
-      );
-    } else {
+    } else if (effectiveBrowse === "tag") {
       const tags = await listTagsWithCounts();
       pickerOrResults = (
-        <SimpleTileGrid
+        <SimpleFilterRows
           items={tags.map((t) => ({ id: t.tag, name: `#${t.tag}`, count: t.count }))}
           basePath={basePath}
           filters={filters}
           filterKey="tag"
-          icon={Hash}
-          emptyLabel="Todavia no hay productos con tags cargados."
+          emptyLabel="Todavia no hay productos con etiquetas cargadas."
         />
       );
+    } else {
+      // "supplier" ya no tiene tab/selector propio en la UI (se saco a
+      // pedido) -- si se llega igual por un link viejo con ?browse=supplier,
+      // mostramos categorias en vez de romper.
+      const categories = await listCategoriesWithCounts();
+      pickerOrResults = <CategoryGrid categories={categories} basePath={basePath} filters={filters} />;
     }
   } else {
     const { products, total, pageSize } = await searchProducts({

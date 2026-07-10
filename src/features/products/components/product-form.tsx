@@ -142,7 +142,7 @@ export function ProductForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="tags">Tags</Label>
+        <Label htmlFor="tags">Etiquetas</Label>
         <Input
           id="tags"
           name="tags"

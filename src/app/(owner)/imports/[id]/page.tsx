@@ -101,7 +101,7 @@ export default async function ImportDetailPage({ params }: { params: Promise<{ i
             <TableHead>Descripción</TableHead>
             <TableHead>Proveedor</TableHead>
             <TableHead>Categoria</TableHead>
-            <TableHead>Tags</TableHead>
+            <TableHead>Etiquetas</TableHead>
             <TableHead className="text-right">Precio unitario</TableHead>
             <TableHead className="text-right">Precio x kilo</TableHead>
           </TableRow>

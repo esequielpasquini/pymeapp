@@ -49,7 +49,7 @@ export async function GET() {
       Descripcion: p.description,
       Proveedor: supplierName,
       Categoria: categoryName,
-      Tags: ((p.tags as string[] | null) ?? []).join(", "),
+      Etiquetas: ((p.tags as string[] | null) ?? []).join(", "),
       "Precio por kilo": p.price_per_kilo ?? "",
       "Precio unitario": p.unit_price ?? "",
     };
