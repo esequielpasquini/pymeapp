@@ -8,7 +8,8 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
-    "seed:remote": "node --env-file=.env.remote.local scripts/seed-remote.mjs"
+    "seed:remote": "node --env-file=.env.remote.local scripts/seed-remote.mjs",
+    "backfill:brand-colors": "node --env-file=.env.local scripts/backfill-brand-colors.mjs"
   },
   "dependencies": {
     "@radix-ui/react-dialog": "^1.1.1",

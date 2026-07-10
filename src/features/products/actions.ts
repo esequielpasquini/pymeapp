@@ -6,6 +6,7 @@ import { randomUUID } from "crypto";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { parseTags } from "@/features/imports/parse";
+import { ensureBrandColor } from "@/features/brands/ensure-brand-color";
 
 const productSchema = z.object({
   brand: z.string().trim().optional(),
@@ -131,6 +132,8 @@ export async function createProduct(
 
   if (error) return { error: "No se pudo crear el producto." };
 
+  await ensureBrandColor(supabase, profile.organization_id, parsed.data.brand);
+
   if (pricePerKilo !== null || unitPrice !== null) {
     await supabase.from("price_changes").insert({
       organization_id: profile.organization_id,
@@ -208,6 +211,8 @@ export async function updateProduct(
     .eq("id", productId);
 
   if (error) return { error: "No se pudo actualizar el producto." };
+
+  await ensureBrandColor(supabase, profile.organization_id, parsed.data.brand);
 
   const priceChanged =
     current &&

@@ -3,6 +3,7 @@ import { AlertCircle } from "lucide-react";
 import { ProductResultCard } from "@/features/products/components/product-result-card";
 import { Button } from "@/components/ui/button";
 import type { Product } from "@/lib/supabase/types";
+import type { BrandColor } from "@/lib/brand-colors";
 
 /**
  * Grilla de resultados de una busqueda de texto + estado vacio ("no
@@ -17,6 +18,7 @@ export function ProductSearchResults({
   q,
   basePath,
   isOwner = false,
+  brandColorMap,
 }: {
   products: Product[];
   /** Puede no haber texto de busqueda si lo que trajo estos resultados fue
@@ -25,6 +27,9 @@ export function ProductSearchResults({
   q?: string;
   basePath: string;
   isOwner?: boolean;
+  /** Ver ProductResultCard -- mapa marca->color persistido, armado una sola
+   * vez con features/brands/queries.ts#getBrandColorMap. */
+  brandColorMap: Record<string, BrandColor>;
 }) {
   return (
     <>
@@ -48,7 +53,13 @@ export function ProductSearchResults({
 
       <div className="divide-y divide-border overflow-hidden rounded-lg border border-border">
         {products.map((product) => (
-          <ProductResultCard key={product.id} product={product} basePath={basePath} isOwner={isOwner} />
+          <ProductResultCard
+            key={product.id}
+            product={product}
+            basePath={basePath}
+            isOwner={isOwner}
+            brandColorMap={brandColorMap}
+          />
         ))}
       </div>
     </>

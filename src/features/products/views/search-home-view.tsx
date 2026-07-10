@@ -10,6 +10,7 @@ import { BrowseTabs } from "@/features/products/components/browse-tabs";
 import { SimpleFilterRows } from "@/features/products/components/simple-filter-rows";
 import { MostSearchedRow } from "@/features/products/components/most-searched-row";
 import { Button } from "@/components/ui/button";
+import { getBrandColorMap } from "@/features/brands/queries";
 import {
   buildFilterHref,
   buildRemoveFilterHref,
@@ -107,19 +108,30 @@ export async function SearchHomeView({
       pickerOrResults = <CategoryGrid categories={categories} basePath={basePath} filters={filters} />;
     }
   } else {
-    const { products, total, pageSize } = await searchProducts({
-      query: q,
-      categoryId: category,
-      brand,
-      supplierId: supplier,
-      tag,
-      page: page ? Number(page) : 1,
-    });
+    const [{ products, total, pageSize }, brandColorMap] = await Promise.all([
+      searchProducts({
+        query: q,
+        categoryId: category,
+        brand,
+        supplierId: supplier,
+        tag,
+        page: page ? Number(page) : 1,
+      }),
+      getBrandColorMap(),
+    ]);
 
     const currentPage = page ? Number(page) : 1;
     const totalPages = Math.max(1, Math.ceil(total / pageSize));
 
-    pickerOrResults = <ProductSearchResults products={products} q={q} basePath={basePath} isOwner={isOwner} />;
+    pickerOrResults = (
+      <ProductSearchResults
+        products={products}
+        q={q}
+        basePath={basePath}
+        isOwner={isOwner}
+        brandColorMap={brandColorMap}
+      />
+    );
 
     if (totalPages > 1) {
       pagination = (

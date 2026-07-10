@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { AlertCircle, Pencil, MoreHorizontal } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
-import { getBrandColorClasses } from "@/lib/brand-colors";
+import { lookupBrandColor, type BrandColor } from "@/lib/brand-colors";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppShareButton } from "@/features/products/components/whatsapp-share-button";
 import { AddToCartButton } from "@/features/cart/components/add-to-cart-button";
@@ -30,6 +30,7 @@ export function ProductResultCard({
   product,
   basePath = "/search",
   isOwner = false,
+  brandColorMap,
 }: {
   product: Product;
   /** Raiz de rutas para "reportar sin stock" -- este mismo componente se usa
@@ -39,6 +40,11 @@ export function ProductResultCard({
   /** Solo /products lo pasa en true. Controla el link de edicion (lapiz) y
    * el boton de compartir por WhatsApp, que un empleado no deberia ver. */
   isOwner?: boolean;
+  /** marca (normalizada) -> color persistido en brand_colors (ver
+   * features/brands/queries.ts), armado una sola vez por ProductSearchResults.
+   * Colores dinamicos por org -> se aplican como estilo inline, no como
+   * clases Tailwind (el JIT no puede conocerlos en build time). */
+  brandColorMap: Record<string, BrandColor>;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [showMore, setShowMore] = useState(false);
@@ -90,10 +96,11 @@ export function ProductResultCard({
         <div className="flex min-w-0 flex-1 items-center gap-3">
           {product.brand ? (
             <span
-              className={cn(
-                "w-20 shrink-0 truncate rounded-full border px-2 py-0.5 text-center text-xs font-semibold md:w-32 md:text-sm",
-                getBrandColorClasses(product.brand)
-              )}
+              className="w-20 shrink-0 truncate rounded-full px-2 py-0.5 text-center text-xs font-semibold md:w-32 md:text-sm"
+              style={{
+                backgroundColor: lookupBrandColor(brandColorMap, product.brand).background,
+                color: lookupBrandColor(brandColorMap, product.brand).foreground,
+              }}
             >
               {product.brand}
             </span>
