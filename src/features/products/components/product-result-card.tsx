@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ImageIcon, AlertCircle, Pencil, MoreHorizontal } from "lucide-react";
+import { AlertCircle, Pencil, MoreHorizontal } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
 import { WhatsAppShareButton } from "@/features/products/components/whatsapp-share-button";
@@ -82,9 +82,7 @@ export function ProductResultCard({
     <div className="transition-colors hover:bg-muted/50">
       <div className="flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3">
         {!hasImage && (
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-md bg-muted/30 text-muted-foreground md:h-12 md:w-12">
-            <ImageIcon className="h-4 w-4" />
-          </div>
+          <div className="h-11 w-11 shrink-0 md:h-12 md:w-12" />
         )}
         {thumbnail}
 

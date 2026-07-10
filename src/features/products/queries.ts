@@ -65,6 +65,7 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
   let q = supabase
     .from("products")
     .select(PRODUCT_SELECT, { count: "exact" })
+    .order("brand", { ascending: true, nullsFirst: false })
     .order("description", { ascending: true })
     .range(from, to);
 
