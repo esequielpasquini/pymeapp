@@ -25,8 +25,20 @@ export function SearchBox({ placeholder }: { placeholder?: string }) {
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [value, setValue] = useState(searchParams.get("q") ?? "");
+  const currentQuery = searchParams.get("q") ?? "";
+  const [value, setValue] = useState(currentQuery);
   const [, startTransition] = useTransition();
+
+  // Si la URL cambia por afuera (se toco un Link -- el tab "Categoria",
+  // sacar un chip de filtro, paginacion, etc.) y ya no tiene el mismo `q`,
+  // el input tiene que reflejarlo. Sin esto el estado de React quedaba
+  // pisado con lo ultimo tipeado aunque la URL ya no tuviera texto de
+  // busqueda (ej: tocar "Categoria" volvia a la pantalla de aterrizaje pero
+  // el cuadro de busqueda seguia mostrando lo que se habia escrito antes).
+  useEffect(() => {
+    setValue(currentQuery);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [currentQuery]);
 
   const [voiceSupported, setVoiceSupported] = useState(false);
   const [isListening, setIsListening] = useState(false);
