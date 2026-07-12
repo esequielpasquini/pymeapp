@@ -198,14 +198,28 @@ export type BrandCount = { brand: string; count: number };
  * para la grilla de navegacion por marca del buscador del empleado. La
  * marca es texto libre en products.brand (no hay tabla propia), asi que se
  * agrupa en memoria en vez de con un GROUP BY en PostgREST.
+ *
+ * `categoryId` es opcional: si se pasa, solo se cuentan/listan las marcas
+ * que tienen al menos un producto activo en esa categoria (ver
+ * search-home-view.tsx -- entrar a "Marcas" despues de elegir una categoria
+ * tiene que mostrar solo las marcas de esa categoria, no todas). Sin
+ * categoria devuelve el universo completo, como antes (lo sigue usando
+ * /reports, donde categoria y marca son filtros independientes, no
+ * jerarquicos).
  */
-export async function listBrandsWithCounts(): Promise<BrandCount[]> {
+export async function listBrandsWithCounts(categoryId?: string): Promise<BrandCount[]> {
   const supabase = await createClient();
-  const { data, error } = await supabase
+  let q = supabase
     .from("products")
     .select("brand")
     .eq("is_active", true)
     .not("brand", "is", null);
+
+  if (categoryId) {
+    q = q.eq("category_id", categoryId);
+  }
+
+  const { data, error } = await q;
 
   if (error) throw error;
 

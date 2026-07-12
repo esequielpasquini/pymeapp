@@ -79,14 +79,22 @@ export async function SearchHomeView({
       const categories = await listCategoriesWithCounts();
       pickerOrResults = <CategoryGrid categories={categories} basePath={basePath} filters={filters} />;
     } else if (effectiveBrowse === "brand") {
-      const brands = await listBrandsWithCounts();
+      // Si ya hay una categoria elegida, solo mostramos las marcas que
+      // tienen productos en ESA categoria -- entrar a "Marcas" desde
+      // "Alimentacion" no tiene que listar marcas de Limpieza que no
+      // vendo en Alimentacion.
+      const brands = await listBrandsWithCounts(category);
       pickerOrResults = (
         <SimpleFilterRows
           items={brands.map((b) => ({ id: b.brand, name: b.brand, count: b.count }))}
           basePath={basePath}
           filters={filters}
           filterKey="brand"
-          emptyLabel="Todavia no hay productos con marca cargada."
+          emptyLabel={
+            category
+              ? "Todavia no hay productos con marca cargada en esta categoria."
+              : "Todavia no hay productos con marca cargada."
+          }
         />
       );
     } else if (effectiveBrowse === "tag") {
