@@ -87,48 +87,61 @@ export function ProductResultCard({
 
   return (
     <div className="transition-colors hover:bg-muted/50">
-      <div className="flex items-center gap-3 px-3 py-2.5 md:px-4 md:py-3">
-        {!hasImage && (
-          <div className="h-11 w-11 shrink-0 md:h-12 md:w-12" />
-        )}
-        {thumbnail}
-
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          {product.brand ? (
-            <span
-              className="w-20 shrink-0 truncate rounded-full px-2 py-0.5 text-center text-xs font-semibold md:w-32 md:text-sm"
-              style={{
-                backgroundColor: lookupBrandColor(brandColorMap, product.brand).background,
-                color: lookupBrandColor(brandColorMap, product.brand).foreground,
-              }}
-            >
-              {product.brand}
-            </span>
-          ) : (
-            <span className="w-20 shrink-0 text-center text-xs text-muted-foreground md:w-32 md:text-sm">—</span>
+      {/*
+        En mobile la fila se parte en dos renglones (flex-col) -- todo en una
+        sola linea (thumbnail + marca + descripcion + precio + acciones)
+        quedaba demasiado apretado en pantallas angostas: la descripcion se
+        truncaba casi de entrada y el precio/acciones se comian el resto.
+        Desde md en adelante vuelve a ser una sola fila igual que antes
+        (md:contents hace que el segundo renglon "desaparezca" como caja y
+        sus hijos pasen a ser items directos de la fila).
+      */}
+      <div className="flex flex-col gap-2 px-3 py-2.5 md:flex-row md:items-center md:gap-3 md:px-4 md:py-3">
+        <div className="flex min-w-0 items-center gap-3 md:flex-1">
+          {!hasImage && (
+            <div className="h-11 w-11 shrink-0 md:h-12 md:w-12" />
           )}
-          <span className="min-w-0 flex-1 truncate font-medium leading-snug text-foreground text-sm md:text-base">
-            {product.description}
-          </span>
+          {thumbnail}
+
+          <div className="flex min-w-0 flex-1 items-center gap-3">
+            {product.brand ? (
+              <span
+                className="w-20 shrink-0 truncate rounded-full px-2 py-0.5 text-center text-xs font-semibold md:w-32 md:text-sm"
+                style={{
+                  backgroundColor: lookupBrandColor(brandColorMap, product.brand).background,
+                  color: lookupBrandColor(brandColorMap, product.brand).foreground,
+                }}
+              >
+                {product.brand}
+              </span>
+            ) : (
+              <span className="w-20 shrink-0 text-center text-xs text-muted-foreground md:w-32 md:text-sm">—</span>
+            )}
+            <span className="min-w-0 flex-1 truncate font-medium leading-snug text-foreground text-sm md:text-base">
+              {product.description}
+            </span>
+          </div>
         </div>
 
-        {priceChip}
+        <div className="flex items-center justify-between gap-2 md:contents">
+          {priceChip}
 
-        <div className="flex shrink-0 items-center gap-1">
-          {isOwner && <WhatsAppShareButton product={product} />}
-          <AddToCartButton product={product} />
-          <button
-            type="button"
-            onClick={() => setShowMore((v) => !v)}
-            aria-label="Más acciones"
-            aria-expanded={showMore}
-            className={cn(
-              "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
-              showMore && "bg-muted text-foreground"
-            )}
-          >
-            <MoreHorizontal className="h-4 w-4" />
-          </button>
+          <div className="flex shrink-0 items-center gap-1">
+            {isOwner && <WhatsAppShareButton product={product} />}
+            <AddToCartButton product={product} />
+            <button
+              type="button"
+              onClick={() => setShowMore((v) => !v)}
+              aria-label="Más acciones"
+              aria-expanded={showMore}
+              className={cn(
+                "flex h-7 w-7 shrink-0 items-center justify-center rounded-full text-muted-foreground hover:bg-muted hover:text-foreground",
+                showMore && "bg-muted text-foreground"
+              )}
+            >
+              <MoreHorizontal className="h-4 w-4" />
+            </button>
+          </div>
         </div>
       </div>
 
