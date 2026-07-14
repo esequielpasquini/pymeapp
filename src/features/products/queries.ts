@@ -139,6 +139,15 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
     void supabase.rpc("bump_product_search_counts", { p_product_ids: productIds });
   }
 
+  // Log basico de actividad ("cuantas busquedas hace cada usuario por dia",
+  // ver features/search-logs/queries.ts): a diferencia del bump de arriba,
+  // esto cuenta TODA busqueda de texto no vacia, no solo las que
+  // devolvieron pocos resultados -- el objetivo aca es medir uso, no
+  // popularidad de productos. Tambien fire-and-forget, mismo criterio.
+  if (params.query && params.query.trim().length > 0) {
+    void supabase.rpc("log_search", { p_query: params.query.trim() });
+  }
+
   return {
     products: (data ?? []) as unknown as Product[],
     total: count ?? 0,
