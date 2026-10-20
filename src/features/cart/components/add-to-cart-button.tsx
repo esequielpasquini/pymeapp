@@ -35,7 +35,11 @@ export function AddToCartButton({ product }: { product: Product }) {
     <button
       type="button"
       onClick={handleAdd}
-      className="text-xs text-primary hover:text-primary/80 md:text-sm"
+      className={
+        inCart
+          ? "h-8 min-w-[6.75rem] rounded-md bg-primary/10 px-3 text-xs font-semibold text-primary hover:bg-primary/15 md:text-sm"
+          : "h-8 min-w-[6.75rem] rounded-md border border-primary/30 px-3 text-xs font-semibold text-primary hover:bg-primary/5 md:text-sm"
+      }
     >
       {inCart ? "En el carrito" : "Agregar"}
     </button>
