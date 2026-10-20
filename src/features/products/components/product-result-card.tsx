@@ -85,6 +85,8 @@ export function ProductResultCard({
     </div>
   );
 
+  const brandColor = product.brand ? lookupBrandColor(brandColorMap, product.brand) : null;
+
   return (
     <div className="transition-colors hover:bg-muted/50">
       {/*
@@ -92,38 +94,49 @@ export function ProductResultCard({
         sola linea (thumbnail + marca + descripcion + precio + acciones)
         quedaba demasiado apretado en pantallas angostas: la descripcion se
         truncaba casi de entrada y el precio/acciones se comian el resto.
-        Desde md en adelante vuelve a ser una sola fila igual que antes
-        (md:contents hace que el segundo renglon "desaparezca" como caja y
-        sus hijos pasen a ser items directos de la fila).
+        Desde sm en adelante vuelve a ser una sola fila (sm:contents hace que
+        el segundo renglon "desaparezca" como caja y sus hijos pasen a ser
+        items directos de la fila).
       */}
-      <div className="flex flex-col gap-2 px-3 py-2.5 md:flex-row md:items-center md:gap-3 md:px-4 md:py-3">
-        <div className="flex min-w-0 items-center gap-3 md:flex-1">
+      <div className="flex flex-col gap-2 px-3 py-2.5 sm:flex-row sm:items-center sm:gap-3 md:px-4 md:py-3">
+        <div className="flex min-w-0 items-center gap-3 sm:flex-1">
           {!hasImage && (
             <div className="h-11 w-11 shrink-0 md:h-12 md:w-12" />
           )}
           {thumbnail}
 
-          <div className="flex min-w-0 flex-1 items-center gap-3">
-            {product.brand ? (
+          {/*
+            Hasta lg la marca va como etiqueta chica (punto de color + texto)
+            arriba de la descripcion: la pastilla de ancho fijo se comia la
+            mitad de la fila y cortaba casi cualquier marca. Desde lg vuelve a
+            ser una columna con pastilla de color. Los colores son dinamicos
+            -> van como variables CSS inline para poder cambiarlos por
+            breakpoint con clases.
+          */}
+          <div className="flex min-w-0 flex-1 flex-col gap-0.5 lg:flex-row lg:items-center lg:gap-3">
+            {brandColor ? (
               <span
-                className="w-20 shrink-0 truncate rounded-full px-2 py-0.5 text-center text-xs font-semibold md:w-32 md:text-sm"
-                style={{
-                  backgroundColor: lookupBrandColor(brandColorMap, product.brand).background,
-                  color: lookupBrandColor(brandColorMap, product.brand).foreground,
-                }}
+                className="flex min-w-0 items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-muted-foreground lg:w-32 lg:shrink-0 lg:justify-center lg:rounded-full lg:bg-[var(--brand-bg)] lg:px-2 lg:py-0.5 lg:text-sm lg:normal-case lg:tracking-normal lg:text-[var(--brand-fg)]"
+                style={
+                  {
+                    "--brand-bg": brandColor.background,
+                    "--brand-fg": brandColor.foreground,
+                  } as React.CSSProperties
+                }
               >
-                {product.brand}
+                <span className="h-2 w-2 shrink-0 rounded-full bg-[var(--brand-bg)] ring-1 ring-inset ring-black/10 lg:hidden" />
+                <span className="truncate">{product.brand}</span>
               </span>
             ) : (
-              <span className="w-20 shrink-0 text-center text-xs text-muted-foreground md:w-32 md:text-sm">—</span>
+              <span className="hidden w-32 shrink-0 text-center text-sm text-muted-foreground lg:block">—</span>
             )}
-            <span className="min-w-0 flex-1 truncate font-medium leading-snug text-foreground text-sm md:text-base">
+            <span className="line-clamp-2 min-w-0 font-medium leading-snug text-foreground text-sm md:text-base lg:line-clamp-none lg:flex-1 lg:truncate">
               {product.description}
             </span>
           </div>
         </div>
 
-        <div className="flex items-center justify-between gap-2 md:contents">
+        <div className="flex items-center justify-between gap-2 sm:contents">
           {priceChip}
 
           <div className="flex shrink-0 items-center gap-1">
