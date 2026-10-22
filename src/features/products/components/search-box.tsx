@@ -46,27 +46,101 @@ export function SearchBox({ placeholder }: { placeholder?: string }) {
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const voiceTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  useEffect(() => {
-    const timeout = setTimeout(() => {
-      const params = new URLSearchParams(searchParams.toString());
-      if (value) {
-        params.set("q", value);
-      } else {
-        params.delete("q");
-      }
-      params.delete("page");
-      // Escribir un termino de busqueda tiene prioridad sobre cualquier
-      // selector de tiles que estuviera abierto (categoria/marca/proveedor/
-      // tag) -- se cierra y se muestran resultados directamente.
-      params.delete("browse");
-      startTransition(() => {
-        router.replace(`${pathname}?${params.toString()}`);
-      });
-    }, 250);
+  const inputRef = useRef<HTMLInputElement>(null);
+  const valueRef = useRef(value);
+  valueRef.current = value;
+  // Ultimo termino que ya se mando a la URL. Evita que el debounce vuelva a
+  // mandar lo mismo despues de una busqueda inmediata (Enter / lector), lo
+  // que duplicaria la busqueda y su registro en search_logs.
+  const lastPushedRef = useRef<string | null>(null);
 
+  function pushQuery(query: string) {
+    lastPushedRef.current = query;
+    const params = new URLSearchParams(searchParams.toString());
+    if (query) {
+      params.set("q", query);
+    } else {
+      params.delete("q");
+    }
+    params.delete("page");
+    // Escribir un termino de busqueda tiene prioridad sobre cualquier
+    // selector de tiles que estuviera abierto (categoria/marca/proveedor/
+    // tag) -- se cierra y se muestran resultados directamente.
+    params.delete("browse");
+    startTransition(() => {
+      router.replace(`${pathname}?${params.toString()}`);
+    });
+  }
+
+  useEffect(() => {
+    if (value === lastPushedRef.current) return;
+    const timeout = setTimeout(() => pushQuery(value), 250);
     return () => clearTimeout(timeout);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [value]);
+
+  // Lector de codigo de barras USB: para el navegador es un teclado que
+  // tipea el codigo muy rapido (pocos ms entre teclas) y termina con Enter.
+  // Se escucha a nivel documento para que funcione aunque el cursor no este
+  // en el buscador: al llegar el Enter de una rafaga rapida, el codigo
+  // reemplaza lo que hubiera en el cuadro (no se concatena con la busqueda
+  // anterior) y se busca en el momento, sin esperar el debounce. Si el foco
+  // esta en OTRO campo editable (ej. formulario de producto) no se hace
+  // nada, para no robarle la lectura a ese campo.
+  useEffect(() => {
+    const MAX_GAP_MS = 50;
+    const MIN_LENGTH = 4;
+    let buffer = "";
+    let lastKeyAt = 0;
+
+    function isOtherEditable(target: EventTarget | null) {
+      if (!(target instanceof HTMLElement) || target === inputRef.current) return false;
+      return (
+        target.isContentEditable ||
+        target instanceof HTMLTextAreaElement ||
+        target instanceof HTMLSelectElement ||
+        (target instanceof HTMLInputElement && target.type !== "checkbox" && target.type !== "radio")
+      );
+    }
+
+    function handleKeyDown(e: KeyboardEvent) {
+      if (isOtherEditable(e.target)) {
+        buffer = "";
+        return;
+      }
+      const now = performance.now();
+
+      if (e.key === "Enter") {
+        const isScan = buffer.length >= MIN_LENGTH && now - lastKeyAt <= MAX_GAP_MS * 2;
+        if (isScan) {
+          e.preventDefault();
+          const code = buffer;
+          setValue(code);
+          pushQuery(code);
+          inputRef.current?.blur();
+        } else if (e.target === inputRef.current) {
+          // Enter tipeado a mano: buscar ya, sin esperar el debounce.
+          e.preventDefault();
+          pushQuery(valueRef.current);
+        }
+        buffer = "";
+        return;
+      }
+
+      if (e.key.length === 1 && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        buffer = now - lastKeyAt > MAX_GAP_MS ? e.key : buffer + e.key;
+        lastKeyAt = now;
+      } else if (e.key !== "Shift") {
+        buffer = "";
+      }
+    }
+
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+    // pushQuery lee searchParams/pathname actuales via closure del render;
+    // se re-suscribe cuando cambian.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [searchParams, pathname]);
 
   // Deteccion en el cliente, despues del montaje: si se evalua en el primer
   // render ya da distinto en servidor (sin window) vs. cliente y React tira
@@ -151,6 +225,8 @@ export function SearchBox({ placeholder }: { placeholder?: string }) {
         <div className="relative flex-1">
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground md:left-4 md:h-5 md:w-5" />
           <Input
+            ref={inputRef}
+            enterKeyHint="search"
             value={value}
             onChange={(e) => setValue(e.target.value)}
             placeholder={placeholder ?? "Que estas buscando?"}

@@ -11,6 +11,7 @@ export type ExistingProduct = {
   supplier_name: string | null;
   category_name: string | null;
   tags: string[];
+  barcode: string | null;
 };
 
 export type DiffItem = {
@@ -27,6 +28,10 @@ export type DiffItem = {
   // realmente van a cambiar, para poder mostrar el "antes" tachado.
   tags: string[];
   previousTags: string[] | null;
+  // Mismo criterio que tags: valor final ya resuelto; previousBarcode solo
+  // cuando realmente cambia.
+  barcode: string | null;
+  previousBarcode: string | null;
   pricePerKilo: number | null;
   unitPrice: number | null;
   previousPricePerKilo: number | null;
@@ -74,6 +79,8 @@ export function computeImportDiff(
         previousCategoryName: null,
         tags: row.tags,
         previousTags: null,
+        barcode: row.barcode,
+        previousBarcode: null,
         pricePerKilo: row.pricePerKilo,
         unitPrice: row.unitPrice,
         previousPricePerKilo: null,
@@ -97,11 +104,15 @@ export function computeImportDiff(
     const tagsChanged = row.tags.length > 0 && !sameTags(row.tags, existing.tags);
     const finalTags = tagsChanged ? row.tags : existing.tags;
 
+    const barcodeChanged = row.barcode !== null && row.barcode !== existing.barcode;
+    const finalBarcode = barcodeChanged ? row.barcode : existing.barcode;
+
     const changed =
       existing.price_per_kilo !== row.pricePerKilo ||
       existing.unit_price !== row.unitPrice ||
       categoryChanged ||
-      tagsChanged;
+      tagsChanged ||
+      barcodeChanged;
 
     if (changed) {
       items.push({
@@ -114,6 +125,8 @@ export function computeImportDiff(
         previousCategoryName: existing.category_name,
         tags: finalTags,
         previousTags: tagsChanged ? existing.tags : null,
+        barcode: finalBarcode,
+        previousBarcode: barcodeChanged ? existing.barcode : null,
         pricePerKilo: row.pricePerKilo,
         unitPrice: row.unitPrice,
         previousPricePerKilo: existing.price_per_kilo,

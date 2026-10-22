@@ -1,6 +1,7 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import type { PriceChange, Product } from "@/lib/supabase/types";
+import { normalizeBarcode, isValidBarcode } from "@/lib/barcode";
 
 const PAGE_SIZE = 25;
 
@@ -114,6 +115,13 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
     // trigram -- un solo ilike acá reemplaza los dos ilike sin indice de
     // antes (ver comentario de la funcion).
     const orParts = [`search_text.ilike.%${normalizedTerm}%`];
+    // Codigo de barras: match exacto (lo que manda el lector USB). Solo si
+    // el termino tiene forma de codigo -- isValidBarcode garantiza que no
+    // trae comas/parentesis que rompan el or() de PostgREST.
+    const barcode = /\s/.test(term) ? null : normalizeBarcode(term);
+    if (barcode !== null && isValidBarcode(barcode)) {
+      orParts.push(`barcode.eq.${barcode}`);
+    }
     if (supplierIds.length > 0) {
       orParts.push(`supplier_id.in.(${supplierIds.join(",")})`);
     }

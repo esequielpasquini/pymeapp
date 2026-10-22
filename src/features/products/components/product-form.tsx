@@ -89,6 +89,22 @@ export function ProductForm({
       </div>
 
       <div className="space-y-2">
+        <Label htmlFor="barcode">Código de barras (opcional)</Label>
+        <Input
+          id="barcode"
+          name="barcode"
+          autoComplete="off"
+          placeholder="Escanealo con el lector o escribilo"
+          defaultValue={product?.barcode ?? ""}
+          // El lector USB "tipea" el codigo y termina con Enter: sin esto,
+          // escanear en este campo enviaria el formulario a medio completar.
+          onKeyDown={(e) => {
+            if (e.key === "Enter") e.preventDefault();
+          }}
+        />
+      </div>
+
+      <div className="space-y-2">
         <Label htmlFor="categoryId">Categoria *</Label>
         <input type="hidden" name="categoryId" value={categoryId} required />
         <Select value={categoryId} onValueChange={setCategoryId}>

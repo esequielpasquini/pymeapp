@@ -28,7 +28,7 @@ export async function GET() {
   const { data: products, error } = await supabase
     .from("products")
     .select(
-      "brand, description, price_per_kilo, unit_price, tags, supplier:suppliers(name), category:categories(name)"
+      "brand, description, price_per_kilo, unit_price, tags, barcode, supplier:suppliers(name), category:categories(name)"
     )
     .eq("organization_id", profile.organization_id)
     .eq("is_active", true)
@@ -50,6 +50,8 @@ export async function GET() {
       Proveedor: supplierName,
       Categoria: categoryName,
       Etiquetas: ((p.tags as string[] | null) ?? []).join(", "),
+      // Texto, no numero: asi Excel no le saca los ceros de adelante.
+      "Codigo de barras": (p.barcode as string | null) ?? "",
       "Precio por kilo": p.price_per_kilo ?? "",
       "Precio unitario": p.unit_price ?? "",
     };

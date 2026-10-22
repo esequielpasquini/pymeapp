@@ -9,6 +9,7 @@ export type CatalogRow = {
   Proveedor: string;
   Categoria: string;
   Etiquetas: string;
+  "Codigo de barras": string;
   "Precio por kilo": number | "";
   "Precio unitario": number | "";
 };

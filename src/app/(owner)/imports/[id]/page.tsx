@@ -121,6 +121,14 @@ export default async function ImportDetailPage({ params }: { params: Promise<{ i
                 <TableCell>
                   {item.brand ? `${item.brand} — ` : ""}
                   {item.description}
+                  {!isRemoved && item.barcode && (
+                    <p className="text-xs tabular-nums text-muted-foreground">
+                      Cód. {item.barcode}
+                      {item.previous_barcode && (
+                        <span className="ml-1.5 line-through">{item.previous_barcode}</span>
+                      )}
+                    </p>
+                  )}
                 </TableCell>
                 <TableCell>{item.supplier_name ?? "—"}</TableCell>
                 <TableCell>

@@ -53,6 +53,7 @@ export type Product = {
   notes: string | null;
   image_url: string | null;
   tags: string[];
+  barcode: string | null;
   is_active: boolean;
   search_count: number;
   last_searched_at: string | null;
@@ -90,6 +91,8 @@ export type ImportItem = {
   previous_category_name: string | null;
   tags: string[];
   previous_tags: string[] | null;
+  barcode: string | null;
+  previous_barcode: string | null;
   price_per_kilo: number | null;
   unit_price: number | null;
   previous_price_per_kilo: number | null;
