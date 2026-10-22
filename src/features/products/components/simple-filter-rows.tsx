@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { buildFilterHref, type ProductFilters } from "@/features/products/filters";
 
-export type TileItem = { id: string; name: string; count: number };
+/** `color`: franja a la izquierda, mismo criterio que ProductResultCard (solo
+ * marcas lo usan, con su color persistido en brand_colors). */
+export type TileItem = { id: string; name: string; count: number; color?: string };
 
 /**
  * Listado (no tiles) para elegir marca o etiqueta -- mismo lenguaje visual
@@ -34,10 +36,19 @@ export function SimpleFilterRows({
           <Link
             key={item.id}
             href={buildFilterHref(basePath, filters, overrides)}
-            className="flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted/50 md:px-5 md:py-3.5"
+            className="relative flex items-center justify-between gap-3 px-4 py-3 transition-colors hover:bg-muted/50 md:px-5 md:py-3.5"
           >
-            <span className="truncate font-medium md:text-lg">{item.name}</span>
-            <span className="shrink-0 text-sm text-muted-foreground">{item.count} productos</span>
+            {item.color && (
+              <span
+                aria-hidden="true"
+                className="absolute inset-y-0 left-0 w-1"
+                style={{ backgroundColor: item.color }}
+              />
+            )}
+            <span className="truncate font-semibold md:text-lg">{item.name}</span>
+            <span className="shrink-0 rounded-full bg-muted px-2.5 py-0.5 text-xs font-medium tabular-nums text-muted-foreground md:text-sm">
+              {item.count.toLocaleString("es-AR")} productos
+            </span>
           </Link>
         );
       })}

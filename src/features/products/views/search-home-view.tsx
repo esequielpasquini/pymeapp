@@ -11,6 +11,7 @@ import { SimpleFilterRows } from "@/features/products/components/simple-filter-r
 import { MostSearchedRow } from "@/features/products/components/most-searched-row";
 import { Button } from "@/components/ui/button";
 import { getBrandColorMap } from "@/features/brands/queries";
+import { lookupBrandColor } from "@/lib/brand-colors";
 import {
   buildFilterHref,
   buildRemoveFilterHref,
@@ -83,10 +84,15 @@ export async function SearchHomeView({
       // tienen productos en ESA categoria -- entrar a "Marcas" desde
       // "Alimentacion" no tiene que listar marcas de Limpieza que no
       // vendo en Alimentacion.
-      const brands = await listBrandsWithCounts(category);
+      const [brands, brandColorMap] = await Promise.all([listBrandsWithCounts(category), getBrandColorMap()]);
       pickerOrResults = (
         <SimpleFilterRows
-          items={brands.map((b) => ({ id: b.brand, name: b.brand, count: b.count }))}
+          items={brands.map((b) => ({
+            id: b.brand,
+            name: b.brand,
+            count: b.count,
+            color: lookupBrandColor(brandColorMap, b.brand).background,
+          }))}
           basePath={basePath}
           filters={filters}
           filterKey="brand"
