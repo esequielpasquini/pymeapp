@@ -123,11 +123,17 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
   const { data, error, count } = await q;
   if (error) throw error;
 
+  // OJO: estas llamadas se esperan a proposito. Un query de supabase-js es
+  // perezoso -- no manda el request hasta que alguien hace await/then -- asi
+  // que el `void supabase.rpc(...)` que habia antes nunca llegaba a la base
+  // (search_logs quedaba vacia y "Mas buscados" no sumaba). Ademas en
+  // Vercel una promesa suelta puede cortarse cuando termina la respuesta.
+  // Van en paralelo y con allSettled: un error aca no puede romper la
+  // busqueda.
+  const tracking: PromiseLike<unknown>[] = [];
+
   // "Mas buscados": solo cuenta como hit puntual cuando la busqueda de texto
-  // devolvio pocos resultados (ver SEARCH_HIT_RESULT_THRESHOLD). No se espera
-  // esta llamada (fire-and-forget) para no sumarle latencia a la respuesta
-  // de busqueda -- es un nice-to-have, no puede hacer que la busqueda en si
-  // se sienta mas lenta.
+  // devolvio pocos resultados (ver SEARCH_HIT_RESULT_THRESHOLD).
   if (
     params.query &&
     params.query.trim().length >= 2 &&
@@ -136,16 +142,24 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
     (count ?? 0) <= SEARCH_HIT_RESULT_THRESHOLD
   ) {
     const productIds = data.map((p) => (p as { id: string }).id);
-    void supabase.rpc("bump_product_search_counts", { p_product_ids: productIds });
+    tracking.push(supabase.rpc("bump_product_search_counts", { p_product_ids: productIds }));
   }
 
   // Log basico de actividad ("cuantas busquedas hace cada usuario por dia",
   // ver features/search-logs/queries.ts): a diferencia del bump de arriba,
   // esto cuenta TODA busqueda de texto no vacia, no solo las que
   // devolvieron pocos resultados -- el objetivo aca es medir uso, no
-  // popularidad de productos. Tambien fire-and-forget, mismo criterio.
+  // popularidad de productos.
   if (params.query && params.query.trim().length > 0) {
-    void supabase.rpc("log_search", { p_query: params.query.trim() });
+    tracking.push(supabase.rpc("log_search", { p_query: params.query.trim() }));
+  }
+
+  if (tracking.length > 0) {
+    const results = await Promise.allSettled(tracking);
+    for (const r of results) {
+      const err = r.status === "rejected" ? r.reason : (r.value as { error?: unknown } | undefined)?.error;
+      if (err) console.error("search tracking failed", err);
+    }
   }
 
   return {
