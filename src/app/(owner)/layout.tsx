@@ -1,4 +1,3 @@
-import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/queries";
 import { getMyOrganization } from "@/features/settings/queries";
@@ -9,6 +8,9 @@ import { SessionCheckIssueScreen } from "@/features/auth/components/session-chec
 import { OwnerNav } from "@/features/dashboard/components/owner-nav";
 import { MobileOwnerNav } from "@/features/dashboard/components/mobile-owner-nav";
 import { OrgBrand } from "@/features/dashboard/components/org-brand";
+import { UserMenu } from "@/features/dashboard/components/user-menu";
+import { enterSellerMode } from "@/features/seller-mode/actions";
+import { isSellerMode } from "@/features/seller-mode/queries";
 import { CartProvider } from "@/features/cart/context";
 import { CartPanel } from "@/features/cart/components/cart-panel";
 import { Button } from "@/components/ui/button";
@@ -26,6 +28,10 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
   }
   if (!profile) return <NoOrganizationScreen email={user.email} />;
   if (profile.role !== "owner") redirect("/search");
+  // Modo vendedor (ver features/seller-mode): el dueño eligio usar este
+  // dispositivo solo para buscar -- cualquier pantalla de admin lo devuelve
+  // al buscador hasta que vuelva a modo admin desde el menu del usuario.
+  if (await isSellerMode()) redirect("/search");
 
   const [organization, enabledModules] = await Promise.all([getMyOrganization(), getEnabledModules()]);
   const comprasEnabled = enabledModules.has(MODULE_COMPRAS);
@@ -37,26 +43,26 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
           oculto en ese rango, asi que sin esto el dueño no tiene forma de
           navegar entre pantallas desde el celular. */}
       <header className="flex items-center justify-between gap-2 border-b border-border px-4 py-2 md:hidden">
-        <Link href="/dashboard" className="min-w-0">
+        <UserMenu mode="admin" onEnterSellerMode={enterSellerMode} onLogout={logout}>
           <OrgBrand
             compact
             logoUrl={organization?.logo_url ?? null}
             name={organization?.name ?? "Asistente de Precios"}
             subtitle={profile.full_name}
           />
-        </Link>
+        </UserMenu>
         <MobileOwnerNav onLogout={logout} pedidosEnabled={pedidosEnabled} />
       </header>
 
       <aside className="hidden w-60 shrink-0 border-r border-border bg-muted/20 p-4 md:flex md:flex-col md:justify-between">
         <div>
-          <Link href="/dashboard" className="mb-6 block px-2">
+          <UserMenu mode="admin" onEnterSellerMode={enterSellerMode} onLogout={logout} className="mb-6">
             <OrgBrand
               logoUrl={organization?.logo_url ?? null}
               name={organization?.name ?? "Asistente de Precios"}
               subtitle={profile.full_name}
             />
-          </Link>
+          </UserMenu>
           <OwnerNav pedidosEnabled={pedidosEnabled} />
         </div>
         <form action={logout}>

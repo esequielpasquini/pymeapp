@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/queries";
 import { NoOrganizationScreen } from "@/features/auth/components/no-organization-screen";
 import { SessionCheckIssueScreen } from "@/features/auth/components/session-check-issue-screen";
+import { isSellerMode } from "@/features/seller-mode/queries";
 
 // Raíz: redirige según rol. El dueño va al dashboard con métricas; el
 // empleado va directo al buscador (su única pantalla).
@@ -15,6 +16,6 @@ export default async function HomePage() {
     redirect("/login");
   }
   if (!profile) return <NoOrganizationScreen email={user.email} />;
-  if (profile.role === "owner") redirect("/dashboard");
+  if (profile.role === "owner" && !(await isSellerMode())) redirect("/dashboard");
   redirect("/search");
 }

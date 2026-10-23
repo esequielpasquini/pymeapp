@@ -7,6 +7,8 @@ import { logout } from "@/features/auth/actions";
 import { NoOrganizationScreen } from "@/features/auth/components/no-organization-screen";
 import { SessionCheckIssueScreen } from "@/features/auth/components/session-check-issue-screen";
 import { OrgBrand } from "@/features/dashboard/components/org-brand";
+import { UserMenu } from "@/features/dashboard/components/user-menu";
+import { exitSellerMode } from "@/features/seller-mode/actions";
 import { CartProvider } from "@/features/cart/context";
 import { CartPanel } from "@/features/cart/components/cart-panel";
 import { Button } from "@/components/ui/button";
@@ -28,25 +30,41 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
 
   const [organization, enabledModules] = await Promise.all([getMyOrganization(), getEnabledModules()]);
   const comprasEnabled = enabledModules.has(MODULE_COMPRAS);
+  const isOwner = profile.role === "owner";
 
   const content = (
     <div className="min-h-screen">
       {/* Header bien bajo a proposito: la prioridad de la pantalla es la
           busqueda y los resultados, no el nav -- ver OrgBrand compact. */}
       <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-2 md:px-6">
-        <Link href="/search" className="min-w-0">
-          <OrgBrand
-            compact
-            logoUrl={organization?.logo_url ?? null}
-            name={organization?.name ?? "Asistente de Precios"}
-            subtitle={profile.full_name}
-          />
-        </Link>
-        <form action={logout}>
-          <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Cerrar sesión">
-            <LogOut className="h-4 w-4" />
-          </Button>
-        </form>
+        {isOwner ? (
+          // Dueño en modo vendedor: el menu del usuario es la salida de vuelta
+          // al modo admin (ver features/seller-mode).
+          <UserMenu mode="seller" onExitSellerMode={exitSellerMode} onLogout={logout}>
+            <OrgBrand
+              compact
+              logoUrl={organization?.logo_url ?? null}
+              name={organization?.name ?? "Asistente de Precios"}
+              subtitle={profile.full_name}
+            />
+          </UserMenu>
+        ) : (
+          <>
+            <Link href="/search" className="min-w-0">
+              <OrgBrand
+                compact
+                logoUrl={organization?.logo_url ?? null}
+                name={organization?.name ?? "Asistente de Precios"}
+                subtitle={profile.full_name}
+              />
+            </Link>
+            <form action={logout}>
+              <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Cerrar sesión">
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </form>
+          </>
+        )}
       </header>
       <main className="p-4 md:px-6 md:py-4">{children}</main>
       {comprasEnabled && <CartPanel />}
