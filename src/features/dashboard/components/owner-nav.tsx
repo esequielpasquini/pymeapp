@@ -14,10 +14,12 @@ import {
   AlertCircle,
   Printer,
   Settings,
+  ShoppingCart,
 } from "lucide-react";
 
 export const OWNER_NAV_LINKS = [
   { href: "/dashboard", label: "Panel", icon: LayoutDashboard },
+  { href: "/sell", label: "Vender", icon: ShoppingCart },
   { href: "/products", label: "Productos", icon: Package },
   { href: "/categories", label: "Categorias", icon: Tags },
   { href: "/suppliers", label: "Proveedores", icon: Truck },
@@ -33,6 +35,7 @@ export function OwnerNav({
   onNavigate,
   linkClassName,
   pedidosEnabled,
+  ventasEnabled,
 }: {
   onNavigate?: () => void;
   linkClassName?: string;
@@ -41,9 +44,13 @@ export function OwnerNav({
    * importar MODULE_PEDIDOS aca, porque ese modulo vive en un archivo
    * "server-only" que no se puede importar desde un client component. */
   pedidosEnabled: boolean;
+  /** Link a la pantalla Vender (modulo "ventas"), mismo criterio. */
+  ventasEnabled: boolean;
 }) {
   const pathname = usePathname();
-  const links = pedidosEnabled ? OWNER_NAV_LINKS : OWNER_NAV_LINKS.filter((link) => link.href !== "/orders");
+  const links = OWNER_NAV_LINKS.filter(
+    (link) => (pedidosEnabled || link.href !== "/orders") && (ventasEnabled || link.href !== "/sell")
+  );
 
   return (
     <nav className="flex flex-col gap-1">

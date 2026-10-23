@@ -15,9 +15,11 @@ import { OwnerNav } from "@/features/dashboard/components/owner-nav";
 export function MobileOwnerNav({
   onLogout,
   pedidosEnabled,
+  ventasEnabled,
 }: {
   onLogout: () => void;
   pedidosEnabled: boolean;
+  ventasEnabled: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -43,6 +45,7 @@ export function MobileOwnerNav({
             onNavigate={() => setOpen(false)}
             linkClassName="text-base py-3"
             pedidosEnabled={pedidosEnabled}
+            ventasEnabled={ventasEnabled}
           />
         </div>
         <form action={onLogout}>

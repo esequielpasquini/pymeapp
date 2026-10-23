@@ -42,7 +42,7 @@ const SEARCH_HIT_RESULT_THRESHOLD = 8;
  */
 const COMBINING_DIACRITICS_RE = new RegExp("[\\u0300-\\u036f]", "g");
 
-function stripAccents(value: string): string {
+export function stripAccents(value: string): string {
   return value.normalize("NFD").replace(COMBINING_DIACRITICS_RE, "");
 }
 

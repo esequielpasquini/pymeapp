@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { usePathname } from "next/navigation";
 import { ShoppingCart, X, Minus, Plus, Trash2 } from "lucide-react";
 import { useCart, getItemPrice } from "@/features/cart/context";
 import { confirmSale } from "@/features/cart/actions";
@@ -21,10 +22,13 @@ import { Input } from "@/components/ui/input";
  */
 export function CartPanel() {
   const cart = useCart();
+  const pathname = usePathname();
   const [isConfirming, startConfirm] = useTransition();
   const [confirmError, setConfirmError] = useState<string | null>(null);
 
-  if (!cart) return null;
+  // En la pantalla Vender la venta se arma ahi mismo -- el tab flotante del
+  // carrito solo confundiria.
+  if (!cart || pathname === "/sell") return null;
 
   const { items, total, itemCount, isOpen, setIsOpen, updateQuantity, toggleFractioned, removeItem, clear } =
     cart;

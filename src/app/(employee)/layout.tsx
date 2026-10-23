@@ -2,13 +2,15 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/queries";
 import { getMyOrganization } from "@/features/settings/queries";
-import { getEnabledModules, MODULE_COMPRAS } from "@/features/modules/queries";
+import { getEnabledModules, MODULE_COMPRAS, MODULE_VENTAS } from "@/features/modules/queries";
 import { logout } from "@/features/auth/actions";
 import { NoOrganizationScreen } from "@/features/auth/components/no-organization-screen";
 import { SessionCheckIssueScreen } from "@/features/auth/components/session-check-issue-screen";
 import { OrgBrand } from "@/features/dashboard/components/org-brand";
 import { UserMenu } from "@/features/dashboard/components/user-menu";
-import { exitSellerMode } from "@/features/seller-mode/actions";
+import { enterSellerMode, exitSellerMode } from "@/features/seller-mode/actions";
+import { isSellerMode } from "@/features/seller-mode/queries";
+import { CounterTabs } from "@/features/sales/components/counter-tabs";
 import { CartProvider } from "@/features/cart/context";
 import { CartPanel } from "@/features/cart/components/cart-panel";
 import { Button } from "@/components/ui/button";
@@ -28,8 +30,13 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
   }
   if (!profile) return <NoOrganizationScreen email={user.email} />;
 
-  const [organization, enabledModules] = await Promise.all([getMyOrganization(), getEnabledModules()]);
+  const [organization, enabledModules, sellerMode] = await Promise.all([
+    getMyOrganization(),
+    getEnabledModules(),
+    isSellerMode(),
+  ]);
   const comprasEnabled = enabledModules.has(MODULE_COMPRAS);
+  const ventasEnabled = enabledModules.has(MODULE_VENTAS);
   const isOwner = profile.role === "owner";
 
   const content = (
@@ -38,9 +45,15 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
           busqueda y los resultados, no el nav -- ver OrgBrand compact. */}
       <header className="sticky top-0 z-10 flex items-center justify-between gap-2 border-b border-border bg-background px-4 py-2 md:px-6">
         {isOwner ? (
-          // Dueño en modo vendedor: el menu del usuario es la salida de vuelta
-          // al modo admin (ver features/seller-mode).
-          <UserMenu mode="seller" onExitSellerMode={exitSellerMode} onLogout={logout}>
+          // Dueño: en modo vendedor el menu del usuario es la salida de vuelta
+          // al modo admin (ver features/seller-mode); si entro desde el panel
+          // ("Vender" en el menu lateral) ofrece pasar a modo vendedor.
+          <UserMenu
+            mode={sellerMode ? "seller" : "admin"}
+            onEnterSellerMode={enterSellerMode}
+            onExitSellerMode={exitSellerMode}
+            onLogout={logout}
+          >
             <OrgBrand
               compact
               logoUrl={organization?.logo_url ?? null}
@@ -49,22 +62,31 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
             />
           </UserMenu>
         ) : (
-          <>
-            <Link href="/search" className="min-w-0">
-              <OrgBrand
-                compact
-                logoUrl={organization?.logo_url ?? null}
-                name={organization?.name ?? "Asistente de Precios"}
-                subtitle={profile.full_name}
-              />
-            </Link>
+          <Link href="/search" className="min-w-0">
+            <OrgBrand
+              compact
+              logoUrl={organization?.logo_url ?? null}
+              name={organization?.name ?? "Asistente de Precios"}
+              subtitle={profile.full_name}
+            />
+          </Link>
+        )}
+
+        <div className="flex shrink-0 items-center gap-2">
+          {ventasEnabled && <CounterTabs />}
+          {isOwner && !sellerMode && (
+            <Button asChild variant="outline" size="sm" className="hidden sm:inline-flex">
+              <Link href="/dashboard">Panel</Link>
+            </Button>
+          )}
+          {!isOwner && (
             <form action={logout}>
               <Button variant="ghost" size="icon" className="h-9 w-9" aria-label="Cerrar sesión">
                 <LogOut className="h-4 w-4" />
               </Button>
             </form>
-          </>
-        )}
+          )}
+        </div>
       </header>
       <main className="p-4 md:px-6 md:py-4">{children}</main>
       {comprasEnabled && <CartPanel />}
