@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { AlertCircle, X } from "lucide-react";
-import { searchProducts, getMostSearchedProducts, listBrandsWithCounts, listTagsWithCounts } from "@/features/products/queries";
+import { searchProducts, listBrandsWithCounts, listTagsWithCounts } from "@/features/products/queries";
 import { listCategoriesWithCounts, getCategory } from "@/features/categories/queries";
 import { getSupplier } from "@/features/suppliers/queries";
 import { SearchBox } from "@/features/products/components/search-box";
@@ -8,7 +8,6 @@ import { ProductSearchResults } from "@/features/products/components/product-sea
 import { CategoryGrid } from "@/features/products/components/category-grid";
 import { BrowseTabs } from "@/features/products/components/browse-tabs";
 import { SimpleFilterRows } from "@/features/products/components/simple-filter-rows";
-import { MostSearchedRow } from "@/features/products/components/most-searched-row";
 import { Button } from "@/components/ui/button";
 import { getBrandColorMap } from "@/features/brands/queries";
 import { lookupBrandColor } from "@/lib/brand-colors";
@@ -166,13 +165,9 @@ export async function SearchHomeView({
     }
   }
 
-  const mostSearched = isPristineLanding ? await getMostSearchedProducts() : [];
-
   return (
     <div className="mx-auto max-w-2xl space-y-4 md:max-w-4xl lg:max-w-5xl">
       <SearchBox placeholder="Que estas buscando?" />
-
-      {isPristineLanding && <MostSearchedRow products={mostSearched} />}
 
       {chips.length > 0 && (
         <div className="flex flex-wrap gap-2">

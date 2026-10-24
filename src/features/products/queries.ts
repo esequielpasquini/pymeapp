@@ -178,26 +178,6 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
   };
 }
 
-/**
- * Top N de productos con al menos una busqueda puntual registrada (ver
- * bump_product_search_counts en 0015_product_search_stats.sql), para el row
- * fijo de "Mas buscados" en la pantalla de inicio de busqueda.
- */
-export async function getMostSearchedProducts(limit = 5): Promise<Product[]> {
-  const supabase = await createClient();
-  const { data, error } = await supabase
-    .from("products")
-    .select(PRODUCT_SELECT)
-    .eq("is_active", true)
-    .gt("search_count", 0)
-    .order("search_count", { ascending: false })
-    .order("last_searched_at", { ascending: false })
-    .limit(limit);
-
-  if (error) throw error;
-  return (data ?? []) as unknown as Product[];
-}
-
 export async function getProduct(id: string): Promise<Product | null> {
   const supabase = await createClient();
   const { data, error } = await supabase
