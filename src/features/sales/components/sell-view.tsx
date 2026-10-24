@@ -345,7 +345,7 @@ export function SellView() {
   const quickAmounts = quickCashAmounts(total);
 
   return (
-    <div className="mx-auto grid max-w-6xl gap-4 lg:grid-cols-[minmax(0,1fr)_22rem] lg:items-start">
+    <div className="mx-auto grid max-w-6xl gap-4 md:grid-cols-[minmax(0,1fr)_18rem] md:items-start lg:grid-cols-[minmax(0,1fr)_22rem]">
       <div className="min-w-0 space-y-3">
         <div className="relative">
           <Input
@@ -425,7 +425,7 @@ export function SellView() {
                 <li
                   key={line.key}
                   className={cn(
-                    "grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 px-3 py-3 transition-colors md:grid-cols-[minmax(0,1fr)_auto_7rem_auto] md:items-center md:px-4",
+                    "grid grid-cols-[minmax(0,1fr)_auto] gap-x-3 gap-y-2 px-3 py-3 transition-colors md:px-4 lg:grid-cols-[minmax(0,1fr)_auto_7rem_auto] lg:items-center",
                     recentKey === line.key && "bg-primary/5"
                   )}
                 >
@@ -450,11 +450,11 @@ export function SellView() {
                     </p>
                   </div>
 
-                  <p className="self-start text-right text-lg font-bold tabular-nums md:order-3 md:self-center">
+                  <p className="self-start text-right text-lg font-bold tabular-nums lg:order-3 lg:self-center">
                     {formatCurrency(lineTotal(line))}
                   </p>
 
-                  <div className="col-span-2 flex items-center gap-1.5 md:order-2 md:col-span-1">
+                  <div className="col-span-2 flex items-center gap-1.5 lg:order-2 lg:col-span-1">
                     {!line.fractioned && (
                       <Button type="button" variant="outline" className="h-9 w-9 p-0 text-lg" onClick={() => stepQuantity(line.key, -1)} aria-label="Restar uno">
                         −
@@ -483,7 +483,7 @@ export function SellView() {
                     <button
                       type="button"
                       onClick={() => removeLine(line.key)}
-                      className="ml-auto rounded px-2 py-1 text-sm text-muted-foreground hover:bg-red-50 hover:text-red-700 md:hidden"
+                      className="ml-auto rounded px-2 py-1 text-sm text-muted-foreground hover:bg-red-50 hover:text-red-700 lg:hidden"
                     >
                       Quitar
                     </button>
@@ -492,7 +492,7 @@ export function SellView() {
                   <button
                     type="button"
                     onClick={() => removeLine(line.key)}
-                    className="hidden rounded px-2 py-1 text-sm text-muted-foreground hover:bg-red-50 hover:text-red-700 md:order-4 md:block"
+                    className="hidden rounded px-2 py-1 text-sm text-muted-foreground hover:bg-red-50 hover:text-red-700 lg:order-4 lg:block"
                   >
                     Quitar
                   </button>
@@ -503,12 +503,12 @@ export function SellView() {
         </div>
       </div>
 
-      <aside className="space-y-4 rounded-lg border border-border p-4 lg:sticky lg:top-20">
+      <aside className="space-y-4 rounded-lg border border-border p-4 md:sticky md:top-20">
         <div>
           <p className="text-sm text-muted-foreground">
             Total · {lines.length} {lines.length === 1 ? "producto" : "productos"}
           </p>
-          <p className="text-4xl font-bold tabular-nums">{formatCurrency(total)}</p>
+          <p className="text-4xl font-bold tabular-nums md:text-3xl lg:text-4xl">{formatCurrency(total)}</p>
         </div>
 
         <div>
