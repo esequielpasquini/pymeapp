@@ -285,6 +285,7 @@ export type ReportProduct = {
   description: string;
   unit_price: number | null;
   price_per_kilo: number | null;
+  updated_at: string;
 };
 
 /**
@@ -303,7 +304,7 @@ export async function listProductsForReport(params: {
   const supabase = await createClient();
   let q = supabase
     .from("products")
-    .select("id, brand, description, unit_price, price_per_kilo")
+    .select("id, brand, description, unit_price, price_per_kilo, updated_at")
     .eq("is_active", true)
     .order("description", { ascending: true });
 

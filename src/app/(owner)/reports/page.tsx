@@ -5,6 +5,19 @@ import { PrintButton } from "@/features/reports/components/print-button";
 import { groupProductsByBrand } from "@/features/reports/group-by-brand";
 import { formatCurrency } from "@/lib/utils";
 
+// Hora de Argentina explicita: el servidor (Vercel) corre en UTC y un cambio
+// hecho a la noche saldria con fecha del dia siguiente.
+const dateFormat = new Intl.DateTimeFormat("es-AR", {
+  day: "2-digit",
+  month: "2-digit",
+  year: "numeric",
+  timeZone: "America/Argentina/Buenos_Aires",
+});
+
+function formatDate(value: string): string {
+  return dateFormat.format(new Date(value));
+}
+
 /**
  * Lista de precios imprimible: pensada para que el dueño la use como
  * catalogo en papel (proveedores, ferias, etc). Agrupada por marca (orden
@@ -65,7 +78,12 @@ export default async function ReportsPage({
                 <tbody>
                   {group.products.map((product) => (
                     <tr key={product.id} className="border-t border-border/60">
-                      <td className="py-1.5">{product.description}</td>
+                      <td className="py-1.5">
+                        {product.description}{" "}
+                        <span className="whitespace-nowrap text-xs text-muted-foreground">
+                          (Última modificación: {formatDate(product.updated_at)})
+                        </span>
+                      </td>
                       <td className="py-1.5 text-right">
                         {product.unit_price !== null ? formatCurrency(product.unit_price) : "—"}
                       </td>
