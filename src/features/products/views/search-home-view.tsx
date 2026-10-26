@@ -194,7 +194,7 @@ export async function SearchHomeView({
             asChild
             variant="outline"
             size="lg"
-            className="h-auto w-full whitespace-normal py-3 sm:w-auto md:h-12 md:px-6 md:text-base"
+            className="h-auto w-full whitespace-normal border-amber-300 bg-amber-50 py-3 font-semibold text-amber-800 hover:bg-amber-100 hover:text-amber-900 sm:w-auto md:h-12 md:px-6 md:text-base"
           >
             <Link href={`${basePath}/report`}>
               <AlertCircle className="mr-2 h-4 w-4 shrink-0" />
