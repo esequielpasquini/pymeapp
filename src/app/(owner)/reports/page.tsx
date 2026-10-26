@@ -28,9 +28,10 @@ function formatDate(value: string): string {
 export default async function ReportsPage({
   searchParams,
 }: {
-  searchParams: Promise<{ category?: string; brand?: string }>;
+  searchParams: Promise<{ category?: string; brand?: string; fechas?: string }>;
 }) {
-  const { category, brand } = await searchParams;
+  const { category, brand, fechas } = await searchParams;
+  const showDates = fechas !== "no";
 
   const [categories, brands, products] = await Promise.all([
     listCategories(),
@@ -50,7 +51,7 @@ export default async function ReportsPage({
         <PrintButton />
       </div>
 
-      <ReportFilters categories={categories} brands={brands} category={category} brand={brand} />
+      <ReportFilters categories={categories} brands={brands} category={category} brand={brand} showDates={showDates} />
 
       {/* Encabezado que solo se ve al imprimir -- en pantalla ya esta el de arriba. */}
       <div className="hidden print:block">
@@ -79,10 +80,12 @@ export default async function ReportsPage({
                   {group.products.map((product) => (
                     <tr key={product.id} className="border-t border-border/60">
                       <td className="py-1.5">
-                        {product.description}{" "}
-                        <span className="whitespace-nowrap text-xs text-muted-foreground">
-                          (Última modificación: {formatDate(product.updated_at)})
-                        </span>
+                        {product.description}
+                        {showDates && (
+                          <span className="ml-1 whitespace-nowrap text-xs text-muted-foreground">
+                            (Última modificación: {formatDate(product.updated_at)})
+                          </span>
+                        )}
                       </td>
                       <td className="py-1.5 text-right">
                         {product.unit_price !== null ? formatCurrency(product.unit_price) : "—"}
