@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/queries";
 import { getMyOrganization } from "@/features/settings/queries";
@@ -14,6 +15,7 @@ import { isSellerMode } from "@/features/seller-mode/queries";
 import { CartProvider } from "@/features/cart/context";
 import { CartPanel } from "@/features/cart/components/cart-panel";
 import { Button } from "@/components/ui/button";
+import { FlashToast } from "@/components/flash-toast";
 import { LogOut } from "lucide-react";
 
 export default async function OwnerLayout({ children }: { children: React.ReactNode }) {
@@ -75,6 +77,10 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
       </aside>
       <main className="flex-1 p-4 md:p-8">{children}</main>
       {comprasEnabled && <CartPanel />}
+      {/* Suspense: FlashToast usa useSearchParams. */}
+      <Suspense fallback={null}>
+        <FlashToast />
+      </Suspense>
     </div>
   );
 

@@ -108,7 +108,9 @@ async function resolveProductImage(
   return { imageUrl: currentImageUrl, error: null };
 }
 
-export type ProductFormState = { error: string | null };
+/** saved: el formulario de edicion vuelve a la pantalla anterior y avisa
+ * (ver ProductForm). */
+export type ProductFormState = { error: string | null; saved?: boolean };
 
 export async function createProduct(
   _prev: ProductFormState,
@@ -275,7 +277,7 @@ export async function updateProduct(
   revalidatePath("/products");
   revalidatePath(`/products/${productId}`);
   revalidatePath("/search");
-  return { error: null };
+  return { error: null, saved: true };
 }
 
 /**

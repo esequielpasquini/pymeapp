@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import { useFormState, useFormStatus } from "react-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +15,7 @@ import {
 } from "@/components/ui/select";
 import { CategoryIcon } from "@/features/categories/components/category-icon";
 import type { ProductFormState } from "@/features/products/actions";
+import { setFlash } from "@/lib/flash";
 import type { Category, Product, Supplier } from "@/lib/supabase/types";
 
 const NO_SUPPLIER = "none";
@@ -45,6 +47,18 @@ export function ProductForm({
   submitLabel: string;
 }) {
   const [state, formAction] = useFormState(action, initialState);
+  const router = useRouter();
+
+  // Edicion guardada: volver a donde se vino (listado, busqueda, reporte...)
+  // y avisar alli. Si se abrio la ficha directo (sin historial), al listado.
+  // revalidatePath en la action ya invalido la cache del router, asi que la
+  // pantalla anterior muestra los datos nuevos.
+  useEffect(() => {
+    if (!state.saved) return;
+    setFlash("Producto guardado");
+    if (window.history.length > 1) router.back();
+    else router.push("/products");
+  }, [state, router]);
   const [categoryId, setCategoryId] = useState(product?.category_id ?? defaultCategoryId ?? "");
   const [supplierId, setSupplierId] = useState(product?.supplier_id ?? NO_SUPPLIER);
 
