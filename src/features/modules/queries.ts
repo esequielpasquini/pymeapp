@@ -9,7 +9,6 @@ import { createClient } from "@/lib/supabase/server";
  * directo en organization_modules), 2) agregar su clave aca y consultarla
  * con getEnabledModules().
  */
-export const MODULE_COMPRAS = "compras";
 export const MODULE_PEDIDOS = "pedidos";
 /** Pantalla Vender (escaneo + cobro), ver features/sales. */
 export const MODULE_VENTAS = "ventas";

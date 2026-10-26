@@ -6,7 +6,6 @@ import { AlertCircle, Pencil, MoreHorizontal } from "lucide-react";
 import { formatCurrency, cn } from "@/lib/utils";
 import { lookupBrandColor, type BrandColor } from "@/lib/brand-colors";
 import { WhatsAppShareButton } from "@/features/products/components/whatsapp-share-button";
-import { AddToCartButton } from "@/features/cart/components/add-to-cart-button";
 import type { Product } from "@/lib/supabase/types";
 
 function isStale(updatedAt: string): boolean {
@@ -28,12 +27,13 @@ function isStale(updatedAt: string): boolean {
  * nombre). El precio va solo, alineado a la derecha, sin caja.
  *
  * Editar y Reportar sin stock son ocasionales -- quedan atras del boton
- * "...". Compartir y Agregar quedan siempre visibles porque son las
- * acciones que de verdad se usan seguido.
+ * "...". Compartir (solo dueño) queda siempre visible.
  *
- * Layout con grid-template-areas: en mobile las acciones van en un segundo
- * renglon debajo de la descripcion y el precio ocupa los dos renglones a la
- * derecha; desde md todo queda en una sola fila.
+ * Una sola fila en todos los tamaños: [foto] [marca+descripcion] [precio]
+ * [acciones]. Las acciones son solo dos iconos chicos, asi que en celular
+ * van apiladas en una columna angosta para dejarle el ancho a la
+ * descripcion; desde sm (tablet) van una al lado de la otra. Pensado para
+ * la tablet con el menu lateral del dueño abierto (~460px de contenido).
  */
 export function ProductResultCard({
   product,
@@ -74,10 +74,8 @@ export function ProductResultCard({
 
       <div
         className={cn(
-          "grid items-center gap-x-3 gap-y-1.5 py-3 pl-4 pr-3 md:gap-x-4 md:pl-5 md:pr-4",
-          hasImage
-            ? "grid-cols-[auto_minmax(0,1fr)_auto] [grid-template-areas:'thumb_info_price''actions_actions_price'] md:grid-cols-[auto_minmax(0,1fr)_auto_auto] md:[grid-template-areas:'thumb_info_price_actions']"
-            : "grid-cols-[minmax(0,1fr)_auto] [grid-template-areas:'info_price''actions_price'] md:grid-cols-[minmax(0,1fr)_auto_auto] md:[grid-template-areas:'info_price_actions']"
+          "grid items-center gap-x-2.5 py-3 pl-4 pr-2 sm:gap-x-3 md:gap-x-4 md:pl-5 md:pr-4",
+          hasImage ? "grid-cols-[auto_minmax(0,1fr)_auto_auto]" : "grid-cols-[minmax(0,1fr)_auto_auto]"
         )}
       >
         {hasImage && (
@@ -85,14 +83,14 @@ export function ProductResultCard({
             type="button"
             onClick={() => setExpanded((v) => !v)}
             aria-label={expanded ? "Ocultar foto" : "Ver foto"}
-            className="h-14 w-14 shrink-0 self-start overflow-hidden rounded-lg border border-border bg-muted/30 [grid-area:thumb] md:self-center"
+            className="h-10 w-10 shrink-0 overflow-hidden rounded-lg border border-border bg-muted/30 sm:h-14 sm:w-14"
           >
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src={product.image_url ?? ""} alt={product.description} className="h-full w-full object-cover" />
           </button>
         )}
 
-        <div className="min-w-0 [grid-area:info]">
+        <div className="min-w-0">
           {product.brand && (
             <p className="truncate text-[11px] font-bold uppercase tracking-wider text-muted-foreground md:text-xs">
               {product.brand}
@@ -103,9 +101,9 @@ export function ProductResultCard({
           </p>
         </div>
 
-        <div className="self-start text-right [grid-area:price] md:self-center">
+        <div className="text-right">
           {product.unit_price !== null && (
-            <p className="whitespace-nowrap text-lg font-bold leading-tight tabular-nums text-foreground md:text-xl">
+            <p className="whitespace-nowrap text-base font-bold leading-tight tabular-nums text-foreground sm:text-lg md:text-xl">
               {formatCurrency(product.unit_price)}
             </p>
           )}
@@ -115,7 +113,7 @@ export function ProductResultCard({
                 "whitespace-nowrap tabular-nums",
                 product.unit_price !== null
                   ? "text-xs text-muted-foreground md:text-sm"
-                  : "text-lg font-bold leading-tight text-foreground md:text-xl"
+                  : "text-base font-bold leading-tight text-foreground sm:text-lg md:text-xl"
               )}
             >
               {formatCurrency(product.price_per_kilo)} / kg
@@ -127,8 +125,7 @@ export function ProductResultCard({
           )}
         </div>
 
-        <div className="flex items-center gap-0.5 [grid-area:actions]">
-          <AddToCartButton product={product} />
+        <div className="flex flex-col items-center gap-0.5 sm:flex-row">
           {isOwner && <WhatsAppShareButton product={product} />}
           <button
             type="button"

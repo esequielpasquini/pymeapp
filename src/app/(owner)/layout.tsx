@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/queries";
 import { getMyOrganization } from "@/features/settings/queries";
-import { getEnabledModules, MODULE_COMPRAS, MODULE_PEDIDOS, MODULE_VENTAS } from "@/features/modules/queries";
+import { getEnabledModules, MODULE_PEDIDOS, MODULE_VENTAS } from "@/features/modules/queries";
 import { logout } from "@/features/auth/actions";
 import { NoOrganizationScreen } from "@/features/auth/components/no-organization-screen";
 import { SessionCheckIssueScreen } from "@/features/auth/components/session-check-issue-screen";
@@ -12,8 +12,6 @@ import { OrgBrand } from "@/features/dashboard/components/org-brand";
 import { UserMenu } from "@/features/dashboard/components/user-menu";
 import { enterSellerMode } from "@/features/seller-mode/actions";
 import { isSellerMode } from "@/features/seller-mode/queries";
-import { CartProvider } from "@/features/cart/context";
-import { CartPanel } from "@/features/cart/components/cart-panel";
 import { Button } from "@/components/ui/button";
 import { FlashToast } from "@/components/flash-toast";
 import { LogOut } from "lucide-react";
@@ -36,11 +34,10 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
   if (await isSellerMode()) redirect("/search");
 
   const [organization, enabledModules] = await Promise.all([getMyOrganization(), getEnabledModules()]);
-  const comprasEnabled = enabledModules.has(MODULE_COMPRAS);
   const pedidosEnabled = enabledModules.has(MODULE_PEDIDOS);
   const ventasEnabled = enabledModules.has(MODULE_VENTAS);
 
-  const content = (
+  return (
     <div className="flex min-h-screen flex-col md:flex-row">
       {/* Header solo mobile/tablet (debajo de md): el aside de abajo esta
           oculto en ese rango, asi que sin esto el dueño no tiene forma de
@@ -76,15 +73,10 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
         </form>
       </aside>
       <main className="flex-1 p-4 md:p-8">{children}</main>
-      {comprasEnabled && <CartPanel />}
       {/* Suspense: FlashToast usa useSearchParams. */}
       <Suspense fallback={null}>
         <FlashToast />
       </Suspense>
     </div>
   );
-
-  // El modulo "compras" (calculadora de venta) solo se monta si esta
-  // habilitado para esta organizacion (ver features/modules).
-  return comprasEnabled ? <CartProvider>{content}</CartProvider> : content;
 }

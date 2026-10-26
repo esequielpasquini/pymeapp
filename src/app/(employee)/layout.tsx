@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/queries";
 import { getMyOrganization } from "@/features/settings/queries";
-import { getEnabledModules, MODULE_COMPRAS, MODULE_VENTAS } from "@/features/modules/queries";
+import { getEnabledModules, MODULE_VENTAS } from "@/features/modules/queries";
 import { logout } from "@/features/auth/actions";
 import { NoOrganizationScreen } from "@/features/auth/components/no-organization-screen";
 import { SessionCheckIssueScreen } from "@/features/auth/components/session-check-issue-screen";
@@ -11,8 +11,6 @@ import { UserMenu } from "@/features/dashboard/components/user-menu";
 import { enterSellerMode, exitSellerMode } from "@/features/seller-mode/actions";
 import { isSellerMode } from "@/features/seller-mode/queries";
 import { CounterTabs } from "@/features/sales/components/counter-tabs";
-import { CartProvider } from "@/features/cart/context";
-import { CartPanel } from "@/features/cart/components/cart-panel";
 import { Button } from "@/components/ui/button";
 import { LogOut } from "lucide-react";
 
@@ -35,11 +33,10 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
     getEnabledModules(),
     isSellerMode(),
   ]);
-  const comprasEnabled = enabledModules.has(MODULE_COMPRAS);
   const ventasEnabled = enabledModules.has(MODULE_VENTAS);
   const isOwner = profile.role === "owner";
 
-  const content = (
+  return (
     <div className="min-h-screen">
       {/* Header bien bajo a proposito: la prioridad de la pantalla es la
           busqueda y los resultados, no el nav -- ver OrgBrand compact. */}
@@ -89,13 +86,6 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
         </div>
       </header>
       <main className="p-4 md:px-6 md:py-4">{children}</main>
-      {comprasEnabled && <CartPanel />}
     </div>
   );
-
-  // El modulo "compras" (calculadora de venta) solo se monta si esta
-  // habilitado para esta organizacion (ver features/modules) -- si no, ni
-  // siquiera se crea el contexto, asi que AddToCartButton no tiene nada
-  // que renderizar en ningun lado.
-  return comprasEnabled ? <CartProvider>{content}</CartProvider> : content;
 }
