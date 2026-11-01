@@ -121,11 +121,13 @@ export default async function ImportDetailPage({ params }: { params: Promise<{ i
                 <TableCell>
                   {item.brand ? `${item.brand} — ` : ""}
                   {item.description}
-                  {!isRemoved && item.barcode && (
+                  {!isRemoved && item.barcodes.length > 0 && (
                     <p className="text-xs tabular-nums text-muted-foreground">
-                      Cód. {item.barcode}
-                      {item.previous_barcode && (
-                        <span className="ml-1.5 line-through">{item.previous_barcode}</span>
+                      Cód. {item.barcodes.join(", ")}
+                      {item.previous_barcodes && (
+                        <span className="ml-1.5">
+                          (antes: {item.previous_barcodes.length > 0 ? item.previous_barcodes.join(", ") : "ninguno"})
+                        </span>
                       )}
                     </p>
                   )}

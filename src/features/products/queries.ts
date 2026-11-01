@@ -120,7 +120,7 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
     // trae comas/parentesis que rompan el or() de PostgREST.
     const barcode = /\s/.test(term) ? null : normalizeBarcode(term);
     if (barcode !== null && isValidBarcode(barcode)) {
-      orParts.push(`barcode.eq.${barcode}`);
+      orParts.push(`barcodes.cs.{${barcode}}`);
     }
     if (supplierIds.length > 0) {
       orParts.push(`supplier_id.in.(${supplierIds.join(",")})`);

@@ -14,6 +14,7 @@ import {
   SelectItem,
 } from "@/components/ui/select";
 import { CategoryIcon } from "@/features/categories/components/category-icon";
+import { BarcodesInput } from "@/features/products/components/barcodes-input";
 import type { ProductFormState } from "@/features/products/actions";
 import { setFlash } from "@/lib/flash";
 import type { Category, Product, Supplier } from "@/lib/supabase/types";
@@ -103,19 +104,11 @@ export function ProductForm({
       </div>
 
       <div className="space-y-2">
-        <Label htmlFor="barcode">Código de barras (opcional)</Label>
-        <Input
-          id="barcode"
-          name="barcode"
-          autoComplete="off"
-          placeholder="Escanealo con el lector o escribilo"
-          defaultValue={product?.barcode ?? ""}
-          // El lector USB "tipea" el codigo y termina con Enter: sin esto,
-          // escanear en este campo enviaria el formulario a medio completar.
-          onKeyDown={(e) => {
-            if (e.key === "Enter") e.preventDefault();
-          }}
-        />
+        <Label htmlFor="barcodes">Códigos de barras (opcional)</Label>
+        <BarcodesInput defaultValue={product?.barcodes ?? []} />
+        <p className="text-xs text-muted-foreground">
+          Podés cargar varios: escaneá uno atrás del otro o separalos con coma.
+        </p>
       </div>
 
       <div className="space-y-2">

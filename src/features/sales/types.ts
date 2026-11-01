@@ -1,6 +1,6 @@
 import type { Product } from "@/lib/supabase/types";
 
-export type SaleProduct = Pick<Product, "id" | "brand" | "description" | "barcode" | "unit_price" | "price_per_kilo">;
+export type SaleProduct = Pick<Product, "id" | "brand" | "description" | "barcodes" | "unit_price" | "price_per_kilo">;
 
 export const PAYMENT_METHODS = [
   { value: "efectivo", label: "Efectivo" },

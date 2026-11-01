@@ -6,7 +6,7 @@ import { normalizeBarcode, isValidBarcode } from "@/lib/barcode";
 import { stripAccents } from "@/features/products/queries";
 import { roundMoney, type SaleProduct } from "@/features/sales/types";
 
-const SALE_PRODUCT_SELECT = "id, brand, description, barcode, unit_price, price_per_kilo";
+const SALE_PRODUCT_SELECT = "id, brand, description, barcodes, unit_price, price_per_kilo";
 
 /**
  * Busqueda para la pantalla Vender. Distinta de searchProducts a proposito:
@@ -30,7 +30,7 @@ export async function findSaleProducts(query: string): Promise<{ exact: boolean;
       .from("products")
       .select(SALE_PRODUCT_SELECT)
       .eq("is_active", true)
-      .eq("barcode", barcode)
+      .contains("barcodes", [barcode])
       .limit(5);
     if (data && data.length > 0) return { exact: true, products: data as SaleProduct[] };
   }

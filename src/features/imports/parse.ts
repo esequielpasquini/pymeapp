@@ -1,6 +1,6 @@
 import "server-only";
 import * as XLSX from "xlsx";
-import { normalizeBarcode, isValidBarcode } from "@/lib/barcode";
+import { parseBarcodes } from "@/lib/barcode";
 
 export type ParsedRow = {
   brand: string | null;
@@ -15,10 +15,10 @@ export type ParsedRow = {
   // tenia. No hay forma de "vaciar" los tags de un producto existente via
   // Excel a proposito, mismo comportamiento que ya tiene categoria.
   tags: string[];
-  // null = el Excel no trae codigo para esta fila (columna ausente, celda
-  // vacia o codigo invalido): se preserva el que el producto ya tenia,
-  // mismo criterio que tags.
-  barcode: string | null;
+  // Codigos de la celda (uno o varios separados por coma, ; o |). Vacio =
+  // el Excel no trae codigos para esta fila. Nunca sacan codigos que el
+  // producto ya tenia: computeImportDiff los suma a los existentes.
+  barcodes: string[];
 };
 
 // Nombres de columna aceptados (case-insensitive, sin acentos), para tolerar
@@ -39,12 +39,14 @@ const COLUMN_ALIASES: Record<string, keyof ParsedRow | "skip"> = {
   tags: "tags",
   etiquetas: "tags",
   etiqueta: "tags",
-  "codigo de barras": "barcode",
-  "cod barras": "barcode",
-  "cod. barras": "barcode",
-  "codigo barras": "barcode",
-  ean: "barcode",
-  barcode: "barcode",
+  "codigo de barras": "barcodes",
+  "codigos de barras": "barcodes",
+  "cod barras": "barcodes",
+  "cod. barras": "barcodes",
+  "codigo barras": "barcodes",
+  ean: "barcodes",
+  barcode: "barcodes",
+  barcodes: "barcodes",
 };
 
 function normalizeHeader(header: string): string {
@@ -126,7 +128,7 @@ export function parseExcelBuffer(buffer: ArrayBuffer): ParsedRow[] {
       pricePerKilo: null,
       unitPrice: null,
       tags: [],
-      barcode: null,
+      barcodes: [],
     };
 
     for (const [header, key] of headerMap.entries()) {
@@ -139,9 +141,8 @@ export function parseExcelBuffer(buffer: ArrayBuffer): ParsedRow[] {
         result[key] = raw ? String(raw).trim() : null;
       } else if (key === "tags") {
         result.tags = parseTags(raw);
-      } else if (key === "barcode") {
-        const code = normalizeBarcode(raw);
-        result.barcode = code !== null && isValidBarcode(code) ? code : null;
+      } else if (key === "barcodes") {
+        result.barcodes = parseBarcodes(raw).codes;
       }
     }
 

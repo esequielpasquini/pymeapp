@@ -7,7 +7,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { parseTags } from "@/features/imports/parse";
 import { ensureBrandColor } from "@/features/brands/ensure-brand-color";
-import { normalizeBarcode, isValidBarcode } from "@/lib/barcode";
+import { parseBarcodes } from "@/lib/barcode";
 
 const productSchema = z.object({
   brand: z.string().trim().optional(),
@@ -18,38 +18,44 @@ const productSchema = z.object({
   unitPrice: z.string().optional(),
   notes: z.string().trim().optional(),
   tags: z.string().trim().optional(),
-  barcode: z.string().optional(),
+  // Codigos separados por salto de linea (ver BarcodesInput).
+  barcodes: z.string().optional(),
 });
 
 /**
- * Valida el codigo de barras del formulario y avisa si ya lo tiene otro
- * producto activo de la organizacion (RLS ya limita la consulta a la org).
- * No hay unique en la base a proposito -- ver 0023_product_barcode.sql.
+ * Valida los codigos de barras del formulario (N por producto, ver
+ * 0025_product_barcodes.sql) y avisa si alguno ya lo tiene otro producto
+ * activo de la organizacion (RLS ya limita la consulta a la org). No hay
+ * unique en la base a proposito -- ver 0023_product_barcode.sql.
  */
-async function resolveBarcode(
+async function resolveBarcodes(
   supabase: Awaited<ReturnType<typeof createClient>>,
   value: string | undefined,
   productId: string | null
-): Promise<{ barcode: string | null; error: string | null }> {
-  const barcode = normalizeBarcode(value);
-  if (barcode === null) return { barcode: null, error: null };
-  if (!isValidBarcode(barcode)) {
-    return { barcode, error: "El código de barras solo puede tener letras, números y guiones." };
+): Promise<{ barcodes: string[]; error: string | null }> {
+  const { codes, invalid } = parseBarcodes(value);
+  if (invalid.length > 0) {
+    return {
+      barcodes: codes,
+      error: `Código de barras inválido: "${invalid[0]}". Solo letras, números y guiones.`,
+    };
   }
+  if (codes.length === 0) return { barcodes: [], error: null };
 
   let q = supabase
     .from("products")
-    .select("description")
-    .eq("barcode", barcode)
+    .select("description, barcodes")
+    .overlaps("barcodes", codes)
     .eq("is_active", true)
     .limit(1);
   if (productId) q = q.neq("id", productId);
   const { data } = await q;
 
   if (data && data.length > 0) {
-    return { barcode, error: `Ese código de barras ya lo tiene "${data[0].description}".` };
+    const taken = codes.find((code) => (data[0].barcodes as string[]).includes(code)) ?? codes[0];
+    return { barcodes: codes, error: `El código ${taken} ya lo tiene "${data[0].description}".` };
   }
-  return { barcode, error: null };
+  return { barcodes: codes, error: null };
 }
 
 function toNumberOrNull(value: string | undefined): number | null {
@@ -139,7 +145,7 @@ export async function createProduct(
   const unitPrice = toNumberOrNull(parsed.data.unitPrice);
   const tags = parseTags(parsed.data.tags);
 
-  const { barcode, error: barcodeError } = await resolveBarcode(supabase, parsed.data.barcode, null);
+  const { barcodes, error: barcodeError } = await resolveBarcodes(supabase, parsed.data.barcodes, null);
   if (barcodeError) return { error: barcodeError };
 
   const { imageUrl, error: imageError } = await resolveProductImage(
@@ -163,7 +169,7 @@ export async function createProduct(
       notes: parsed.data.notes || null,
       image_url: imageUrl,
       tags,
-      barcode,
+      barcodes,
       updated_by: user.id,
     })
     .select("id")
@@ -225,7 +231,7 @@ export async function updateProduct(
   const unitPrice = toNumberOrNull(parsed.data.unitPrice);
   const tags = parseTags(parsed.data.tags);
 
-  const { barcode, error: barcodeError } = await resolveBarcode(supabase, parsed.data.barcode, productId);
+  const { barcodes, error: barcodeError } = await resolveBarcodes(supabase, parsed.data.barcodes, productId);
   if (barcodeError) return { error: barcodeError };
 
   const { imageUrl, error: imageError } = await resolveProductImage(
@@ -248,7 +254,7 @@ export async function updateProduct(
       notes: parsed.data.notes || null,
       image_url: imageUrl,
       tags,
-      barcode,
+      barcodes,
       updated_by: user.id,
     })
     .eq("id", productId);
