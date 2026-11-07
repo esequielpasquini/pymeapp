@@ -1,4 +1,5 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 
 /**
@@ -22,7 +23,7 @@ export const MODULE_FINANZAS = "finanzas";
  * organizacion a mano ni preocuparse de que devuelva modulos de otro
  * negocio.
  */
-export async function getEnabledModules(): Promise<Set<string>> {
+export const getEnabledModules = cache(async (): Promise<Set<string>> => {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("organization_modules")
@@ -31,4 +32,4 @@ export async function getEnabledModules(): Promise<Set<string>> {
 
   if (error) return new Set();
   return new Set((data ?? []).map((row) => row.module_key as string));
-}
+});

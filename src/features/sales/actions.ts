@@ -2,6 +2,7 @@
 
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionUserResponse } from "@/lib/supabase/get-verified-user";
 import { normalizeBarcode, isValidBarcode } from "@/lib/barcode";
 import { stripAccents } from "@/features/products/queries";
 import { roundMoney, type SaleProduct } from "@/features/sales/types";
@@ -101,7 +102,7 @@ export async function registerSale(input: RegisterSaleInput): Promise<RegisterSa
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) return { error: "Tenés que iniciar sesión de nuevo." };
 
   const { data: profile } = await supabase

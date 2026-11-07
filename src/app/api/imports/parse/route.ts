@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionUserResponse } from "@/lib/supabase/get-verified-user";
 import { parseExcelBuffer, ImportParseError } from "@/features/imports/parse";
 import { computeImportDiff, type ExistingProduct } from "@/features/imports/diff";
 
@@ -11,7 +12,7 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }

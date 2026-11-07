@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionUserResponse } from "@/lib/supabase/get-verified-user";
 import { MODULE_FINANZAS } from "@/features/modules/queries";
 import { readSheetPhoto, SheetReaderNotConfiguredError } from "@/features/finanzas/sheet-reader";
 import { isValidDate, resolveSheetDate } from "@/features/finanzas/dates";
@@ -25,7 +26,7 @@ async function requireOwner() {
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase

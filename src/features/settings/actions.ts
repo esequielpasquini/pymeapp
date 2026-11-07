@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient, createServiceRoleClient } from "@/lib/supabase/server";
+import { getSessionUserResponse } from "@/lib/supabase/get-verified-user";
 
 export type InviteFormState = { error: string | null; success?: boolean };
 
@@ -25,7 +26,7 @@ export async function inviteEmployee(
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) return { error: "No autenticado." };
 
   const { data: profile } = await supabase
@@ -94,7 +95,7 @@ export async function updateOrganizationLogo(
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) return { error: "No autenticado." };
 
   const { data: profile } = await supabase
@@ -154,7 +155,7 @@ export async function updateOrganizationDescription(
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) return { error: "No autenticado." };
 
   const { data: profile } = await supabase

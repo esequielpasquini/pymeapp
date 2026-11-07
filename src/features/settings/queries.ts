@@ -1,5 +1,6 @@
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
+import { getCurrentSession } from "@/features/auth/queries";
 import type { Organization, Profile } from "@/lib/supabase/types";
 
 export async function listEmployees(): Promise<Profile[]> {
@@ -15,24 +16,9 @@ export async function listEmployees(): Promise<Profile[]> {
  * de dueño/empleado (para mostrar el logo en el nav).
  */
 export async function getMyOrganization(): Promise<Organization | null> {
-  const supabase = await createClient();
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data: profile } = await supabase
-    .from("profiles")
-    .select("organization_id")
-    .eq("id", user.id)
-    .maybeSingle();
-  if (!profile) return null;
-
-  const { data, error } = await supabase
-    .from("organizations")
-    .select("*")
-    .eq("id", profile.organization_id)
-    .maybeSingle();
-  if (error) return null;
-  return data as Organization | null;
+  // Ya viene en el mismo query del perfil (getCurrentSession, cacheado por
+  // request): antes esto repetia la verificacion de sesion, el perfil y la
+  // organizacion -- 3 viajes mas a Supabase en cada pagina.
+  const { organization } = await getCurrentSession();
+  return organization;
 }

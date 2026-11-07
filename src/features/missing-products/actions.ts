@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionUserResponse } from "@/lib/supabase/get-verified-user";
 
 export type ReportFormState = { error: string | null; success?: boolean };
 
@@ -18,7 +19,7 @@ export async function createReport(
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -81,7 +82,7 @@ export async function resolveReport(reportId: string) {
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
 
   const { error } = await supabase
     .from("missing_reports")

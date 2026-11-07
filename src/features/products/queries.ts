@@ -1,4 +1,5 @@
 import "server-only";
+import { waitUntil } from "@vercel/functions";
 import { createClient } from "@/lib/supabase/server";
 import type { PriceChange, Product } from "@/lib/supabase/types";
 import { normalizeBarcode, isValidBarcode } from "@/lib/barcode";
@@ -131,13 +132,15 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
   const { data, error, count } = await q;
   if (error) throw error;
 
-  // OJO: estas llamadas se esperan a proposito. Un query de supabase-js es
-  // perezoso -- no manda el request hasta que alguien hace await/then -- asi
-  // que el `void supabase.rpc(...)` que habia antes nunca llegaba a la base
-  // (search_logs quedaba vacia y "Mas buscados" no sumaba). Ademas en
-  // Vercel una promesa suelta puede cortarse cuando termina la respuesta.
-  // Van en paralelo y con allSettled: un error aca no puede romper la
-  // busqueda.
+  // OJO: un query de supabase-js es perezoso -- no manda el request hasta
+  // que alguien hace await/then -- asi que el `void supabase.rpc(...)` que
+  // habia antes nunca llegaba a la base (search_logs quedaba vacia y "Mas
+  // buscados" no sumaba). Por eso se disparan con Promise.allSettled (que
+  // hace el then) y se le pasan a waitUntil(): Vercel mantiene viva la
+  // funcion hasta que terminen, pero los resultados se devuelven YA, sin
+  // esperar estos dos viajes extra a la base. Fuera de Vercel (npm run dev)
+  // waitUntil no hace nada y la promesa corre igual en el proceso de Node.
+  // allSettled: un error aca no puede romper la busqueda.
   const tracking: PromiseLike<unknown>[] = [];
 
   // "Mas buscados": solo cuenta como hit puntual cuando la busqueda de texto
@@ -163,11 +166,14 @@ export async function searchProducts(params: SearchProductsParams): Promise<Sear
   }
 
   if (tracking.length > 0) {
-    const results = await Promise.allSettled(tracking);
-    for (const r of results) {
-      const err = r.status === "rejected" ? r.reason : (r.value as { error?: unknown } | undefined)?.error;
-      if (err) console.error("search tracking failed", err);
-    }
+    waitUntil(
+      Promise.allSettled(tracking).then((results) => {
+        for (const r of results) {
+          const err = r.status === "rejected" ? r.reason : (r.value as { error?: unknown } | undefined)?.error;
+          if (err) console.error("search tracking failed", err);
+        }
+      })
+    );
   }
 
   return {

@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionUserResponse } from "@/lib/supabase/get-verified-user";
 
 export type OrderItemInput = {
   productId: string | null;
@@ -29,7 +30,7 @@ export async function createOrder(supplierId: string, items: OrderItemInput[]) {
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -90,7 +91,7 @@ export async function updateOrderItems(orderId: string, items: OrderItemInput[])
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) return { error: "Tenés que iniciar sesión de nuevo." };
 
   const { data: order } = await supabase
@@ -128,7 +129,7 @@ export async function setOrderStatus(orderId: string, status: "pendiente" | "env
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) return { error: "Tenés que iniciar sesión de nuevo." };
 
   const { error } = await supabase
@@ -151,7 +152,7 @@ export async function duplicateOrder(orderId: string) {
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase

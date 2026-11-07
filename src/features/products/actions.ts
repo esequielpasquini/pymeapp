@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionUserResponse } from "@/lib/supabase/get-verified-user";
 import { parseTags } from "@/features/imports/parse";
 import { ensureBrandColor } from "@/features/brands/ensure-brand-color";
 import { parseBarcodes } from "@/lib/barcode";
@@ -130,7 +131,7 @@ export async function createProduct(
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -210,7 +211,7 @@ export async function updateProduct(
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) redirect("/login");
 
   const { data: profile } = await supabase
@@ -297,7 +298,7 @@ export async function deleteProduct(productId: string) {
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) redirect("/login");
 
   const { error } = await supabase.from("products").update({ is_active: false }).eq("id", productId);

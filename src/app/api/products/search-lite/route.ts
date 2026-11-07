@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionUserResponse } from "@/lib/supabase/get-verified-user";
 
 // Autocomplete liviano para el selector de producto del formulario de
 // "reportar faltante": cualquier miembro de la organizacion (dueño o
@@ -8,7 +9,7 @@ export async function GET(request: Request) {
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }

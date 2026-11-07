@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/queries";
-import { getMyOrganization } from "@/features/settings/queries";
 import { getEnabledModules, MODULE_VENTAS } from "@/features/modules/queries";
 import { logout } from "@/features/auth/actions";
 import { NoOrganizationScreen } from "@/features/auth/components/no-organization-screen";
@@ -17,7 +16,13 @@ import { LogOut } from "lucide-react";
 // Pantalla del empleado: mobile-first, sin barra lateral ni nada que
 // distraiga del buscador. Usable desde un celular sin capacitación.
 export default async function EmployeeLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, inconclusive } = await getCurrentSession();
+  // En paralelo: la sesion (perfil + organizacion en un query), los modulos
+  // y la cookie de modo vendedor no dependen entre si.
+  const [{ user, profile, organization, inconclusive }, enabledModules, sellerMode] = await Promise.all([
+    getCurrentSession(),
+    getEnabledModules(),
+    isSellerMode(),
+  ]);
 
   if (!user) {
     // Si no pudimos confirmar la sesion por un problema transitorio (wifi,
@@ -28,11 +33,6 @@ export default async function EmployeeLayout({ children }: { children: React.Rea
   }
   if (!profile) return <NoOrganizationScreen email={user.email} />;
 
-  const [organization, enabledModules, sellerMode] = await Promise.all([
-    getMyOrganization(),
-    getEnabledModules(),
-    isSellerMode(),
-  ]);
   const ventasEnabled = enabledModules.has(MODULE_VENTAS);
   const isOwner = profile.role === "owner";
 

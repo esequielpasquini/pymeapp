@@ -1,12 +1,14 @@
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
-import { getVerifiedUser } from "@/lib/supabase/get-verified-user";
-import type { LoginBranding, Profile } from "@/lib/supabase/types";
-import type { User } from "@supabase/supabase-js";
+import { getSessionUser, type SessionUser } from "@/lib/supabase/get-verified-user";
+import type { LoginBranding, Organization, Profile } from "@/lib/supabase/types";
 
 export type CurrentSession = {
-  user: User | null;
+  user: SessionUser | null;
   profile: Profile | null;
+  /** Organizacion del perfil, traida en el mismo query (ver getMyOrganization). */
+  organization: Organization | null;
   /** ver getVerifiedUser() -- true si no pudimos confirmar la sesion por un
    * problema transitorio. Los layouts no deberian redirigir a /login en ese
    * caso, solo cuando `user` es null y esto es false. */
@@ -23,15 +25,22 @@ export type CurrentSession = {
  * como si la contrasena estuviera mal, cuando en realidad el problema es
  * que le falta el alta en `profiles`.
  */
-export async function getCurrentSession(): Promise<CurrentSession> {
+/*
+ * cache(): el layout, la pagina y getMyOrganization() piden la sesion en el
+ * mismo render; con cache() se resuelve una sola vez por request en vez de
+ * repetir los mismos viajes a Supabase.
+ */
+export const getCurrentSession = cache(async (): Promise<CurrentSession> => {
   const supabase = await createClient();
-  const { user, inconclusive } = await getVerifiedUser(supabase);
+  const { user, inconclusive } = await getSessionUser(supabase);
 
-  if (!user) return { user: null, profile: null, inconclusive };
+  if (!user) return { user: null, profile: null, organization: null, inconclusive };
 
+  // Perfil + organizacion en un solo query (embed de PostgREST por la FK
+  // profiles.organization_id) en vez de dos viajes.
   const { data, error } = await supabase
     .from("profiles")
-    .select("id, organization_id, full_name, role, created_at")
+    .select("id, organization_id, full_name, role, created_at, organization:organizations(*)")
     .eq("id", user.id)
     .maybeSingle();
 
@@ -46,8 +55,10 @@ export async function getCurrentSession(): Promise<CurrentSession> {
     );
   }
 
-  return { user, profile: (data as Profile | null) ?? null, inconclusive: false };
-}
+  if (!data) return { user, profile: null, organization: null, inconclusive: false };
+  const { organization, ...profile } = data as unknown as Profile & { organization: Organization | null };
+  return { user, profile, organization: organization ?? null, inconclusive: false };
+});
 
 /**
  * Atajo para los casos que solo necesitan el perfil (la mayoria de layouts).

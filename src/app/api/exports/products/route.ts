@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionUserResponse } from "@/lib/supabase/get-verified-user";
 import { buildCatalogWorkbook, type CatalogRow } from "@/features/imports/export";
 
 // "Recrear Excel": exporta el catalogo actual (ya con cualquier edicion
@@ -10,7 +11,7 @@ export async function GET() {
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) {
     return NextResponse.json({ error: "No autenticado" }, { status: 401 });
   }

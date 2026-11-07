@@ -1,7 +1,6 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/queries";
-import { getMyOrganization } from "@/features/settings/queries";
 import { getEnabledModules, MODULE_FINANZAS, MODULE_PEDIDOS, MODULE_VENTAS } from "@/features/modules/queries";
 import { logout } from "@/features/auth/actions";
 import { NoOrganizationScreen } from "@/features/auth/components/no-organization-screen";
@@ -17,7 +16,13 @@ import { FlashToast } from "@/components/flash-toast";
 import { LogOut } from "lucide-react";
 
 export default async function OwnerLayout({ children }: { children: React.ReactNode }) {
-  const { user, profile, inconclusive } = await getCurrentSession();
+  // En paralelo: la sesion (perfil + organizacion en un query), los modulos
+  // y la cookie de modo vendedor no dependen entre si.
+  const [{ user, profile, organization, inconclusive }, enabledModules, sellerMode] = await Promise.all([
+    getCurrentSession(),
+    getEnabledModules(),
+    isSellerMode(),
+  ]);
 
   if (!user) {
     // Si no pudimos confirmar la sesion por un problema transitorio (wifi,
@@ -31,9 +36,8 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
   // Modo vendedor (ver features/seller-mode): el dueño eligio usar este
   // dispositivo solo para buscar -- cualquier pantalla de admin lo devuelve
   // al buscador hasta que vuelva a modo admin desde el menu del usuario.
-  if (await isSellerMode()) redirect("/search");
+  if (sellerMode) redirect("/search");
 
-  const [organization, enabledModules] = await Promise.all([getMyOrganization(), getEnabledModules()]);
   const pedidosEnabled = enabledModules.has(MODULE_PEDIDOS);
   const ventasEnabled = enabledModules.has(MODULE_VENTAS);
   const finanzasEnabled = enabledModules.has(MODULE_FINANZAS);

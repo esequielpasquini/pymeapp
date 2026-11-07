@@ -46,3 +46,50 @@ export async function getVerifiedUser(supabase: SupabaseClient): Promise<Verifie
 
   return { user, inconclusive: false };
 }
+
+/** Lo unico que la app usa del usuario autenticado. */
+export type SessionUser = { id: string; email: string | null };
+
+export type SessionUserResult = { user: SessionUser | null; inconclusive: boolean };
+
+/**
+ * Igual que getVerifiedUser() pero SIN ir a Supabase Auth en cada llamada:
+ * usa auth.getClaims(), que verifica la firma del token de sesion localmente
+ * con la clave publica del proyecto (ES256; la clave se baja una vez y queda
+ * cacheada en memoria). Con la base en Sao Paulo, cada viaje a Supabase Auth
+ * desde el servidor era una espera mas en cada pagina y en cada formulario.
+ *
+ * Es seguro usarlo en Server Components, Server Actions y route handlers
+ * porque el middleware (lib/supabase/middleware.ts) ya hace la validacion
+ * completa contra Supabase Auth -- getVerifiedUser() -- en ESE MISMO
+ * request, y refresca la sesion si hace falta. Si el token estuviera firmado
+ * con la clave simetrica vieja (HS256), getClaims() cae solo a getUser().
+ */
+export async function getSessionUser(supabase: SupabaseClient): Promise<SessionUserResult> {
+  let { data, error } = await supabase.auth.getClaims();
+
+  if (!data && isAuthRetryableFetchError(error)) {
+    ({ data, error } = await supabase.auth.getClaims());
+  }
+
+  if (!data && isAuthRetryableFetchError(error)) {
+    return { user: null, inconclusive: true };
+  }
+
+  const claims = data?.claims;
+  if (!claims?.sub) return { user: null, inconclusive: false };
+  return {
+    user: { id: claims.sub, email: typeof claims.email === "string" ? claims.email : null },
+    inconclusive: false,
+  };
+}
+
+/**
+ * Misma forma de respuesta que `supabase.auth.getUser()` (`{ data: { user } }`)
+ * para reemplazarlo sin tocar el resto de cada Server Action / route handler.
+ * Un problema transitorio se trata como "sin usuario", igual que antes.
+ */
+export async function getSessionUserResponse(supabase: SupabaseClient) {
+  const { user } = await getSessionUser(supabase);
+  return { data: { user } };
+}

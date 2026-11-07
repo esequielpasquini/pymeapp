@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionUserResponse } from "@/lib/supabase/get-verified-user";
 
 export type SupplierFormState = { error: string | null };
 
@@ -18,7 +19,7 @@ export async function createSupplier(
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) return { error: "No autenticado." };
 
   const { data: profile } = await supabase
@@ -87,7 +88,7 @@ export async function deleteSupplier(supplierId: string): Promise<{ error: strin
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) return { error: "No autenticado." };
 
   const { error } = await supabase.from("suppliers").delete().eq("id", supplierId);

@@ -2,6 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionUserResponse } from "@/lib/supabase/get-verified-user";
 
 export type CategoryFormState = { error: string | null };
 
@@ -22,7 +23,7 @@ export async function createCategory(
   const supabase = await createClient();
   const {
     data: { user },
-  } = await supabase.auth.getUser();
+  } = await getSessionUserResponse(supabase);
   if (!user) return { error: "No autenticado." };
 
   const { data: profile } = await supabase
