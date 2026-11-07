@@ -16,10 +16,12 @@ export function MobileOwnerNav({
   onLogout,
   pedidosEnabled,
   ventasEnabled,
+  finanzasEnabled,
 }: {
   onLogout: () => void;
   pedidosEnabled: boolean;
   ventasEnabled: boolean;
+  finanzasEnabled: boolean;
 }) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
@@ -46,6 +48,7 @@ export function MobileOwnerNav({
             linkClassName="text-base py-3"
             pedidosEnabled={pedidosEnabled}
             ventasEnabled={ventasEnabled}
+            finanzasEnabled={finanzasEnabled}
           />
         </div>
         <form action={onLogout}>

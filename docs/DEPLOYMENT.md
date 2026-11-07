@@ -28,7 +28,12 @@ Copiar `.env.example` a `.env.local` y completar con los datos del paso 1:
 NEXT_PUBLIC_SUPABASE_URL=
 NEXT_PUBLIC_SUPABASE_ANON_KEY=
 SUPABASE_SERVICE_ROLE_KEY=
+ANTHROPIC_API_KEY=
 ```
+
+`ANTHROPIC_API_KEY` (console.anthropic.com > API Keys) es opcional: la usa el módulo
+Finanzas para leer las fotos del cuaderno de ventas con Claude Haiku 5.5. Sin ella el
+módulo funciona igual pero los montos se cargan a mano. Tampoco lleva `NEXT_PUBLIC_`.
 
 La `SUPABASE_SERVICE_ROLE_KEY` **nunca** debe tener el prefijo `NEXT_PUBLIC_` — si lo
 tuviera quedaría expuesta en el bundle del cliente. Solo se usa en Server Actions

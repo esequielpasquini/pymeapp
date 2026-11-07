@@ -12,6 +12,7 @@
     "backfill:brand-colors": "node --env-file=.env.local scripts/backfill-brand-colors.mjs"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^1.6.0",
     "@radix-ui/react-dialog": "^1.1.1",
     "@radix-ui/react-label": "^2.1.0",
     "@radix-ui/react-select": "^2.1.1",
@@ -22,9 +23,9 @@
     "clsx": "^2.1.1",
     "lucide-react": "^0.446.0",
     "next": "14.2.35",
-    "server-only": "^0.0.1",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
+    "server-only": "^0.0.1",
     "tailwind-merge": "^2.5.2",
     "xlsx": "^0.18.5",
     "zod": "^3.23.8"

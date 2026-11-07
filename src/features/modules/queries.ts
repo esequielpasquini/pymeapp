@@ -12,6 +12,8 @@ import { createClient } from "@/lib/supabase/server";
 export const MODULE_PEDIDOS = "pedidos";
 /** Pantalla Vender (escaneo + cobro), ver features/sales. */
 export const MODULE_VENTAS = "ventas";
+/** Finanzas (ventas del cuaderno, tarjetas, facturas, gastos y ganancia), solo dueño. Ver features/finanzas. */
+export const MODULE_FINANZAS = "finanzas";
 
 /**
  * Modulos habilitados para la organizacion del usuario logueado. RLS

@@ -15,6 +15,7 @@ import {
   Printer,
   Settings,
   ShoppingCart,
+  Wallet,
 } from "lucide-react";
 
 export const OWNER_NAV_LINKS = [
@@ -24,6 +25,7 @@ export const OWNER_NAV_LINKS = [
   { href: "/categories", label: "Categorias", icon: Tags },
   { href: "/suppliers", label: "Proveedores", icon: Truck },
   { href: "/orders", label: "Pedidos", icon: ClipboardList },
+  { href: "/finanzas", label: "Finanzas", icon: Wallet },
   { href: "/imports", label: "Importar Excel", icon: Upload },
   { href: "/price-adjustments", label: "Ajuste de precios", icon: Percent },
   { href: "/missing-products", label: "Faltantes", icon: AlertCircle },
@@ -36,6 +38,7 @@ export function OwnerNav({
   linkClassName,
   pedidosEnabled,
   ventasEnabled,
+  finanzasEnabled,
 }: {
   onNavigate?: () => void;
   linkClassName?: string;
@@ -46,10 +49,15 @@ export function OwnerNav({
   pedidosEnabled: boolean;
   /** Link a la pantalla Vender (modulo "ventas"), mismo criterio. */
   ventasEnabled: boolean;
+  /** Link a Finanzas (modulo "finanzas"), mismo criterio. */
+  finanzasEnabled: boolean;
 }) {
   const pathname = usePathname();
   const links = OWNER_NAV_LINKS.filter(
-    (link) => (pedidosEnabled || link.href !== "/orders") && (ventasEnabled || link.href !== "/sell")
+    (link) =>
+      (pedidosEnabled || link.href !== "/orders") &&
+      (ventasEnabled || link.href !== "/sell") &&
+      (finanzasEnabled || link.href !== "/finanzas")
   );
 
   return (

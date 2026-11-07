@@ -2,7 +2,7 @@ import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { getCurrentSession } from "@/features/auth/queries";
 import { getMyOrganization } from "@/features/settings/queries";
-import { getEnabledModules, MODULE_PEDIDOS, MODULE_VENTAS } from "@/features/modules/queries";
+import { getEnabledModules, MODULE_FINANZAS, MODULE_PEDIDOS, MODULE_VENTAS } from "@/features/modules/queries";
 import { logout } from "@/features/auth/actions";
 import { NoOrganizationScreen } from "@/features/auth/components/no-organization-screen";
 import { SessionCheckIssueScreen } from "@/features/auth/components/session-check-issue-screen";
@@ -36,6 +36,7 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
   const [organization, enabledModules] = await Promise.all([getMyOrganization(), getEnabledModules()]);
   const pedidosEnabled = enabledModules.has(MODULE_PEDIDOS);
   const ventasEnabled = enabledModules.has(MODULE_VENTAS);
+  const finanzasEnabled = enabledModules.has(MODULE_FINANZAS);
 
   return (
     <div className="flex min-h-screen flex-col md:flex-row">
@@ -51,7 +52,7 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
             subtitle={profile.full_name}
           />
         </UserMenu>
-        <MobileOwnerNav onLogout={logout} pedidosEnabled={pedidosEnabled} ventasEnabled={ventasEnabled} />
+        <MobileOwnerNav onLogout={logout} pedidosEnabled={pedidosEnabled} ventasEnabled={ventasEnabled} finanzasEnabled={finanzasEnabled} />
       </header>
 
       <aside className="hidden w-60 shrink-0 border-r border-border bg-muted/20 p-4 md:flex md:flex-col md:justify-between">
@@ -63,7 +64,7 @@ export default async function OwnerLayout({ children }: { children: React.ReactN
               subtitle={profile.full_name}
             />
           </UserMenu>
-          <OwnerNav pedidosEnabled={pedidosEnabled} ventasEnabled={ventasEnabled} />
+          <OwnerNav pedidosEnabled={pedidosEnabled} ventasEnabled={ventasEnabled} finanzasEnabled={finanzasEnabled} />
         </div>
         <form action={logout}>
           <Button variant="ghost" size="sm" className="w-full justify-start gap-2 text-muted-foreground">
