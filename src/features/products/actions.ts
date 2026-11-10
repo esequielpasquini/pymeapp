@@ -283,6 +283,7 @@ export async function updateProduct(
 
   revalidatePath("/products");
   revalidatePath(`/products/${productId}`);
+  revalidatePath(`/search/${productId}`);
   revalidatePath("/search");
   return { error: null, saved: true };
 }

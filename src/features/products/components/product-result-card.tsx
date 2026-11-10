@@ -42,12 +42,12 @@ export function ProductResultCard({
   brandColorMap,
 }: {
   product: Product;
-  /** Raiz de rutas para "reportar sin stock" -- este mismo componente se usa
-   * tanto en /search (empleado) como en /products (dueño), cada uno con sus
-   * propias sub-rutas. */
+  /** Raiz de rutas para "Editar" y "reportar sin stock" -- este mismo
+   * componente se usa tanto en /search (empleado) como en /products (dueño),
+   * cada uno con sus propias sub-rutas. */
   basePath?: string;
-  /** Solo /products lo pasa en true. Controla el link de edicion (lapiz) y
-   * el boton de compartir por WhatsApp, que un empleado no deberia ver. */
+  /** Solo /products lo pasa en true. Controla el boton de compartir por
+   * WhatsApp, que un empleado no deberia ver. */
   isOwner?: boolean;
   /** marca (normalizada) -> color persistido en brand_colors (ver
    * features/brands/queries.ts), armado una sola vez por ProductSearchResults.
@@ -157,15 +157,14 @@ export function ProductResultCard({
 
       {showMore && (
         <div className="flex flex-wrap items-center gap-4 border-t border-dashed border-border py-2 pl-4 pr-3 text-xs md:pl-5 md:pr-4 md:text-sm">
-          {isOwner && (
-            <Link
-              href={`/products/${product.id}`}
-              className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
-            >
-              <Pencil className="h-3.5 w-3.5" />
-              Editar
-            </Link>
-          )}
+          {/* /products/[id] (dueño) o /search/[id] (empleado, sin Eliminar). */}
+          <Link
+            href={`${basePath}/${product.id}`}
+            className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"
+          >
+            <Pencil className="h-3.5 w-3.5" />
+            Editar
+          </Link>
           <Link
             href={`${basePath}/report?productId=${product.id}`}
             className="inline-flex items-center gap-1 text-muted-foreground hover:text-foreground"

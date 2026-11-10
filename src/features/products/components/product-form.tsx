@@ -39,6 +39,7 @@ export function ProductForm({
   suppliers,
   defaultCategoryId,
   submitLabel,
+  fallbackHref = "/products",
 }: {
   action: (state: ProductFormState, formData: FormData) => Promise<ProductFormState>;
   product?: Product;
@@ -46,6 +47,9 @@ export function ProductForm({
   suppliers: Supplier[];
   defaultCategoryId?: string;
   submitLabel: string;
+  /** A donde ir tras guardar si no hay historial ("/search" para el
+   * empleado, que no tiene acceso a /products). */
+  fallbackHref?: string;
 }) {
   const [state, formAction] = useFormState(action, initialState);
   const router = useRouter();
@@ -58,8 +62,8 @@ export function ProductForm({
     if (!state.saved) return;
     setFlash("Producto guardado");
     if (window.history.length > 1) router.back();
-    else router.push("/products");
-  }, [state, router]);
+    else router.push(fallbackHref);
+  }, [state, router, fallbackHref]);
   const [categoryId, setCategoryId] = useState(product?.category_id ?? defaultCategoryId ?? "");
   const [supplierId, setSupplierId] = useState(product?.supplier_id ?? NO_SUPPLIER);
 
