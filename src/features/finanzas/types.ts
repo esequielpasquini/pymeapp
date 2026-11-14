@@ -66,6 +66,8 @@ export type DayResult = {
   sales: number;
   purchases: number;
   expenses: number;
+  /** Renglones del cuaderno (efectivo + transferencia): cada uno es una venta. */
+  sheetSalesCount: number;
 };
 
 export type PeriodResult = {
@@ -81,6 +83,9 @@ export type PeriodResult = {
   grossMargin: number;
   expenses: number;
   netProfit: number;
+  /** Ventas anotadas en el cuaderno. Las tarjetas se cargan como total del
+   * dia, no por venta, asi que no entran en la cuenta ni en el ticket. */
+  sheetSalesCount: number;
   expensesByCategory: { category: string; amount: number }[];
   days: DayResult[];
   /** Dias pasados (hasta hoy) del periodo, de lunes a sabado, sin hoja confirmada. */

@@ -1,4 +1,4 @@
-import { daysBetween, weekdayOf } from "@/features/finanzas/dates";
+import { daysBetween, monthRange, shiftMonth, toIso, weekdayOf } from "@/features/finanzas/dates";
 import type { DayResult, PeriodResult, CardMethod, SheetPaymentMethod } from "@/features/finanzas/types";
 
 /**
@@ -33,7 +33,17 @@ const SUNDAY = 0;
 export function computePeriodResult(input: ResultInputs): PeriodResult {
   const days = new Map<string, DayResult>();
   for (const date of daysBetween(input.from, input.to)) {
-    days.set(date, { date, hasSheet: false, cash: 0, transfers: 0, cards: 0, sales: 0, purchases: 0, expenses: 0 });
+    days.set(date, {
+      date,
+      hasSheet: false,
+      cash: 0,
+      transfers: 0,
+      cards: 0,
+      sales: 0,
+      purchases: 0,
+      expenses: 0,
+      sheetSalesCount: 0,
+    });
   }
   const dayOf = (date: string) => days.get(date);
 
@@ -51,6 +61,7 @@ export function computePeriodResult(input: ResultInputs): PeriodResult {
     if (!day) continue;
     if (entry.payment_method === "transferencia") day.transfers += entry.amount;
     else day.cash += entry.amount;
+    day.sheetSalesCount += 1;
   }
   for (const payment of input.cardPayments) {
     const day = dayOf(payment.date);
@@ -94,6 +105,7 @@ export function computePeriodResult(input: ResultInputs): PeriodResult {
     grossMargin: sales - purchases,
     expenses,
     netProfit: sales - purchases - expenses,
+    sheetSalesCount: sum((d) => d.sheetSalesCount),
     expensesByCategory: Array.from(byCategory, ([category, amount]) => ({ category, amount })).sort(
       (a, b) => b.amount - a.amount
     ),
@@ -132,4 +144,54 @@ export function groupByWeek(days: DayResult[]): WeekResult[] {
     current.net = current.sales - current.purchases - current.expenses;
   }
   return weeks;
+}
+
+/**
+ * Periodo del mes anterior contra el que comparar `month`. Si `month` es el
+ * mes en curso, solo los mismos dias (del 1 a hoy): comparar 13 dias contra
+ * un mes completo siempre daria "abajo". Si es un mes futuro, no hay
+ * comparacion.
+ */
+export function comparisonRange(
+  month: string,
+  today: string
+): { from: string; to: string; partial: boolean } | null {
+  const current = monthRange(month);
+  if (today < current.from) return null;
+  const previous = monthRange(shiftMonth(month, -1));
+  if (today > current.to) return { ...previous, partial: false };
+
+  const [year, m, lastDay] = previous.to.split("-").map(Number);
+  const day = Math.min(Number(today.slice(8)), lastDay);
+  return { from: previous.from, to: toIso(year, m, day), partial: true };
+}
+
+export type MonthProjection = {
+  projected: number;
+  dailyAverage: number;
+  /** Dias con ventas que se usaron para sacar el promedio. */
+  basedOnDays: number;
+};
+
+const MIN_DAYS_FOR_PROJECTION = 3;
+
+/**
+ * Cierre estimado del mes en curso: promedio de venta por dia trabajado
+ * (lunes a sabado, hasta ayer, solo dias con ventas cargadas -- un dia sin
+ * hoja no tiene que tirar el promedio para abajo) por la cantidad de dias
+ * trabajados del mes. Hoy no cuenta porque todavia se esta vendiendo. null
+ * si no es el mes en curso o hay muy pocos dias para que el numero sirva.
+ */
+export function projectMonth(result: PeriodResult, today: string): MonthProjection | null {
+  if (today < result.from || today > result.to) return null;
+  const workingDays = result.days.filter((d) => weekdayOf(d.date) !== SUNDAY);
+  const pastWithSales = workingDays.filter((d) => d.date < today && d.sales > 0);
+  if (pastWithSales.length < MIN_DAYS_FOR_PROJECTION) return null;
+
+  const dailyAverage = pastWithSales.reduce((acc, d) => acc + d.sales, 0) / pastWithSales.length;
+  return {
+    projected: dailyAverage * workingDays.length,
+    dailyAverage,
+    basedOnDays: pastWithSales.length,
+  };
 }
