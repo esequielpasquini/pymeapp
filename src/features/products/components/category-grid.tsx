@@ -27,7 +27,7 @@ function toneFor(id: string) {
 }
 
 /**
- * Grilla de iconos grandes de categorias. La usan tanto el buscador del
+ * Grilla de tiles horizontales (icono chico + nombre) de categorias. La usan tanto el buscador del
  * empleado (/search) como el listado de productos del dueno (/products) --
  * en vez de listar todos los productos de una, se navega por categoria.
  * Tocar un tile agrega (o reemplaza) el filtro de categoria sobre los demas
@@ -51,7 +51,7 @@ export function CategoryGrid({
   }
 
   return (
-    <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 md:gap-4 lg:grid-cols-5">
+    <div className="grid grid-cols-1 gap-2 min-[400px]:grid-cols-2 md:grid-cols-3 xl:grid-cols-4">
       {categories.map((category) => {
         const tone = toneFor(category.id);
         return (
@@ -59,21 +59,16 @@ export function CategoryGrid({
             key={category.id}
             href={buildFilterHref(basePath, filters, { category: category.id, browse: undefined })}
             className={cn(
-              "flex flex-col items-center gap-2 rounded-xl border p-6 text-center transition-all hover:shadow-md active:scale-[0.97] md:gap-3 md:p-8",
+              "flex items-center gap-3 rounded-lg border px-3 py-2.5 transition-all hover:shadow-sm active:scale-[0.98]",
               tone.tile
             )}
           >
-            <div
-              className={cn(
-                "flex h-16 w-16 items-center justify-center rounded-full md:h-20 md:w-20",
-                tone.icon
-              )}
-            >
-              <CategoryIcon icon={category.icon} className="h-8 w-8 md:h-10 md:w-10" />
+            <div className={cn("flex h-9 w-9 shrink-0 items-center justify-center rounded-full", tone.icon)}>
+              <CategoryIcon icon={category.icon} className="h-5 w-5" />
             </div>
-            <div>
-              <p className="font-semibold leading-snug md:text-lg">{category.name}</p>
-              <p className="text-xs text-muted-foreground md:text-sm">
+            <div className="min-w-0">
+              <p className="truncate font-semibold leading-tight">{category.name}</p>
+              <p className="text-xs text-muted-foreground">
                 {(category.product_count ?? 0).toLocaleString("es-AR")} productos
               </p>
             </div>
